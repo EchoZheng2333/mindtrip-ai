@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== 设计系统全局变量 ===== */
+:root {
+  --color-bg-wabi: #F4F1EA;
+  --color-text-dark: #1C1C1E;
+  --color-retro-ink: #2C3A2E;
+  --color-cute-pop: #E63946;
+  --color-card-bg: rgba(255, 255, 255, 0.75);
+}
+
+/* ===== 基础重置 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Arial', sans-serif;
+  background-color: var(--color-bg-wabi);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* ===== 沉浸容器 ===== */
+.app-container {
+  min-height: 100vh;
+  background-color: var(--color-bg-wabi);
+}
+
+/* ===== 磨砂玻璃卡片 ===== */
+.glass-card {
+  background: var(--color-card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1.5rem;
+}
+
+/* ===== 交互组件 ===== */
+.slider-input {
+  @apply w-full h-2 rounded-full appearance-none cursor-pointer;
+  background: linear-gradient(to right, #D4CDBC, #9C8E72);
+  accent-color: var(--color-cute-pop);
+}
+
+.slider-input::-webkit-slider-thumb {
+  @apply w-5 h-5 rounded-full border-2 border-white shadow-md;
+  background: var(--color-cute-pop);
+  -webkit-appearance: none;
+}
+
+.btn-primary {
+  @apply px-8 py-4 rounded-2xl font-semibold text-white text-lg
+         transition-all duration-300 ease-out
+         shadow-lg hover:shadow-xl active:scale-[0.98];
+  background: var(--color-cute-pop);
+}
+
+.btn-primary:hover {
+  background: #C62828;
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+  transform: none !important;
+}
+
+.btn-secondary {
+  @apply px-8 py-4 rounded-2xl font-semibold text-lg
+         transition-all duration-300 ease-out;
+  background: transparent;
+  border: 1.5px solid var(--color-retro-ink);
+  color: var(--color-retro-ink);
+}
+
+.btn-secondary:hover {
+  background: rgba(44, 58, 46, 0.05);
+  transform: translateY(-2px);
+}
+
+.tag {
+  @apply inline-block px-3 py-1 rounded-full text-sm mr-2 mb-2;
+  background: rgba(44, 58, 46, 0.08);
+  color: var(--color-retro-ink);
+}
+
+/* ===== 扑克牌花色进度 ===== */
+.suit-dot {
+  @apply inline-flex items-center justify-center w-6 h-6 rounded-full text-xs
+         transition-all duration-500 ease-out;
+  font-size: 12px;
+}
+
+.suit-dot.active {
+  @apply shadow-md;
+  color: var(--color-cute-pop);
+  transform: scale(1.2);
+}
+
+.suit-dot.inactive {
+  color: #D4CDBC;
+}
+
+/* ===== 美学光谱条 ===== */
+.spectrum-bar {
+  @apply h-3 rounded-full overflow-hidden;
+  background: rgba(212, 205, 188, 0.3);
+}
+
+.spectrum-fill {
+  @apply h-full rounded-full transition-all duration-1000 ease-out;
+}
+
+/* ===== 时间轴 ===== */
+.timeline-line {
+  @apply absolute left-6 top-0 bottom-0 w-px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--color-retro-ink) 0px,
+    var(--color-retro-ink) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.timeline-node {
+  @apply relative pl-16 pr-4 py-6;
+}
+
+.timeline-dot {
+  @apply absolute left-4 top-6 w-4 h-4 rounded-full border-2 z-10;
+  border-color: var(--color-retro-ink);
+  background: var(--color-bg-wabi);
+}
+
+.timeline-dot.active {
+  background: var(--color-cute-pop);
+  border-color: var(--color-cute-pop);
+  box-shadow: 0 0 12px rgba(230, 57, 70, 0.4);
+}
+
+/* ===== 拖拽上传区 ===== */
+.dropzone {
+  @apply border-2 border-dashed rounded-3xl p-12 text-center
+         transition-all duration-300 cursor-pointer;
+  border-color: #D4CDBC;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.dropzone:hover,
+.dropzone.drag-over {
+  border-color: var(--color-cute-pop);
+  background: rgba(230, 57, 70, 0.03);
+  transform: scale(1.01);
+}
+
+/* ===== 滚动条 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4CDBC;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8AD96;
+}
+
+/* ===== 排版工具 ===== */
+.text-serif {
+  font-family: 'Georgia', 'Noto Serif SC', serif;
+}
+
+.text-sans {
+  font-family: 'Inter', 'Arial', sans-serif;
+}
+
+/* ===== 加载动画 ===== */
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
