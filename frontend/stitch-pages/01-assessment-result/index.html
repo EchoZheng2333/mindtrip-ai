@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>灵感之源 AI - 灵魂美学测评结果</title>
+<meta content="灵感之源 AI 心理测评结果页 - 了解你的审美倾向与精神能量状态" name="description"/>
+<!-- ==================== 全局基础样式 ==================== -->
+<style>
+        /* 基础层：重置浏览器默认行为 */
+        @layer base {
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                overscroll-behavior: none;
+            }
+            main > :first-child {
+                margin-top: 0 !important;
+            }
+            main > :last-child {
+                margin-bottom: 0 !important;
+            }
+        }
+        /* 隐藏滚动条（保留滚动功能） */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ===== 入场动画工具类 ===== */
+        /* reveal：元素初始为隐藏+偏移，通过 .active 触发渐入效果 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== 背景图像的微动效果 ===== */
+        @keyframes subtleDrift {
+            0% { transform: scale(1.05) translateX(0); }
+            50% { transform: scale(1.05) translateX(-10px); }
+            100% { transform: scale(1.05) translateX(0); }
+        }
+        .ambient-drift {
+            animation: subtleDrift 20s ease-in-out infinite;
+        }
+
+        /* 深色模式自定义属性 */
+        :root {
+          --surface: #fdf8f8;
+          --surface-dim: #ddd9d8;
+          --surface-bright: #fdf8f8;
+          --surface-container-lowest: #ffffff;
+          --surface-container-low: #f7f3f2;
+          --surface-container: #f1edec;
+          --surface-container-high: #ebe7e6;
+          --surface-container-highest: #e5e2e1;
+          --on-surface: #1c1b1b;
+          --on-surface-variant: #444748;
+          --background: #fdf8f8;
+          --primary: #000000;
+          --on-primary: #ffffff;
+          --primary-container: #1c1b1b;
+          --on-primary-container: #858383;
+          --secondary: #5d5f58;
+          --on-secondary: #ffffff;
+          --secondary-container: #e3e3da;
+          --surface-tint: #5f5e5e;
+          --outline: #747878;
+          --outline-variant: #c4c7c7;
+          --error: #ba1a1a;
+          --on-error: #ffffff;
+          --error-container: #ffdad6;
+          --on-error-container: #93000a;
+          --inverse-surface: #313030;
+          --inverse-on-surface: #f4f0ef;
+          --inverse-primary: #c8c6c5;
+          --tertiary: #000000;
+          --on-tertiary: #ffffff;
+          --tertiary-container: #1c1b1a;
+          --on-tertiary-container: #868382;
+          --on-tertiary-fixed: #1c1b1a;
+          --on-tertiary-fixed-variant: #484645;
+          --tertiary-fixed: #e6e2df;
+          --tertiary-fixed-dim: #cac6c4;
+          --on-secondary-container: #63655e;
+          --on-secondary-fixed: #1a1c17;
+          --on-secondary-fixed-variant: #464741;
+          --surface-variant: #e5e2e1;
+          --on-background: #1c1b1b;
+          --on-primary-fixed: #1c1b1b;
+          --on-primary-fixed-variant: #474746;
+          --primary-fixed: #e5e2e1;
+          --primary-fixed-dim: #c8c6c5;
+          --secondary-fixed: #e3e3da;
+          --secondary-fixed-dim: #c6c7bf;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --surface: #1c1b1b;
+            --surface-dim: #141313;
+            --surface-bright: #232222;
+            --surface-container-lowest: #111111;
+            --surface-container-low: #1e1d1d;
+            --surface-container: #222121;
+            --surface-container-high: #2b2a2a;
+            --surface-container-highest: #363434;
+            --on-surface: #e5e2e1;
+            --on-surface-variant: #c4c7c7;
+            --background: #1c1b1b;
+            --primary: #ffffff;
+            --on-primary: #000000;
+            --primary-container: #e5e2e1;
+            --on-primary-container: #3b3a3a;
+            --secondary: #c6c7bf;
+            --on-secondary: #1a1c17;
+            --secondary-container: #464741;
+            --surface-tint: #c8c6c5;
+            --outline: #8e9292;
+            --outline-variant: #444748;
+            --error: #ffb4ab;
+            --on-error: #690005;
+            --error-container: #93000a;
+            --on-error-container: #ffdad6;
+            --inverse-surface: #313030;
+            --inverse-on-surface: #f4f0ef;
+            --inverse-primary: #c8c6c5;
+            --tertiary: #000000;
+            --on-tertiary: #ffffff;
+            --tertiary-container: #1c1b1a;
+            --on-tertiary-container: #868382;
+            --on-tertiary-fixed: #1c1b1a;
+            --on-tertiary-fixed-variant: #484645;
+            --tertiary-fixed: #e6e2df;
+            --tertiary-fixed-dim: #cac6c4;
+            --on-secondary-container: #63655e;
+            --on-secondary-fixed: #1a1c17;
+            --on-secondary-fixed-variant: #464741;
+            --surface-variant: #e5e2e1;
+            --on-background: #1c1b1b;
+            --on-primary-fixed: #1c1b1b;
+            --on-primary-fixed-variant: #474746;
+            --primary-fixed: #e5e2e1;
+            --primary-fixed-dim: #c8c6c5;
+            --secondary-fixed: #e3e3da;
+            --secondary-fixed-dim: #c6c7bf;
+          }
+        }
+    </style>
+<!-- ==================== Tailwind CSS CDN ==================== -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- ==================== Tailwind 自定义主题配置 ==================== -->
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    /* 自定义色彩系统 —— Material Design 3 语义化配色 */
+                    "colors": {
+                        "tertiary-container": "var(--tertiary-container)",
+                        "surface-tint": "var(--surface-tint)",
+                        "on-primary-container": "var(--on-primary-container)",
+                        "on-tertiary": "var(--on-tertiary)",
+                        "error": "var(--error)",
+                        "inverse-surface": "var(--inverse-surface)",
+                        "primary-container": "var(--primary-container)",
+                        "secondary-fixed": "var(--secondary-fixed)",
+                        "secondary-container": "var(--secondary-container)",
+                        "tertiary": "var(--tertiary)",
+                        "surface": "var(--surface)",
+                        "primary-fixed-dim": "var(--primary-fixed-dim)",
+                        "primary": "var(--primary)",
+                        "on-secondary-container": "var(--on-secondary-container)",
+                        "surface-variant": "var(--surface-variant)",
+                        "outline-variant": "var(--outline-variant)",
+                        "tertiary-fixed-dim": "var(--tertiary-fixed-dim)",
+                        "surface-container-high": "var(--surface-container-high)",
+                        "on-tertiary-fixed-variant": "var(--on-tertiary-fixed-variant)",
+                        "surface-bright": "var(--surface-bright)",
+                        "on-secondary-fixed-variant": "var(--on-secondary-fixed-variant)",
+                        "inverse-on-surface": "var(--inverse-on-surface)",
+                        "on-background": "var(--on-background)",
+                        "on-primary-fixed-variant": "var(--on-primary-fixed-variant)",
+                        "on-error": "var(--on-error)",
+                        "on-tertiary-fixed": "var(--on-tertiary-fixed)",
+                        "on-surface": "var(--on-surface)",
+                        "error-container": "var(--error-container)",
+                        "tertiary-fixed": "var(--tertiary-fixed)",
+                        "on-secondary-fixed": "var(--on-secondary-fixed)",
+                        "on-tertiary-container": "var(--on-tertiary-container)",
+                        "background": "var(--background)",
+                        "on-error-container": "var(--on-error-container)",
+                        "on-secondary": "var(--on-secondary)",
+                        "secondary-fixed-dim": "var(--secondary-fixed-dim)",
+                        "surface-container-lowest": "var(--surface-container-lowest)",
+                        "primary-fixed": "var(--primary-fixed)",
+                        "on-primary": "var(--on-primary)",
+                        "on-primary-fixed": "var(--on-primary-fixed)",
+                        "outline": "var(--outline)",
+                        "inverse-primary": "var(--inverse-primary)",
+                        "surface-container-highest": "var(--surface-container-highest)",
+                        "surface-container": "var(--surface-container)",
+                        "surface-dim": "var(--surface-dim)",
+                        "surface-container-low": "var(--surface-container-low)",
+                        "secondary": "var(--secondary)",
+                        "on-surface-variant": "var(--on-surface-variant)"
+                    },
+                    /* 圆角尺寸 */
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    /* 间距系统 */
+                    "spacing": {
+                        "xl": "80px",
+                        "margin-mobile": "20px",
+                        "gutter": "24px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "margin-desktop": "64px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "lg": "48px"
+                    },
+                    /* 字体家族 */
+                    "fontFamily": {
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Noto Serif"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Noto Serif"],
+                        "display-lg": ["Noto Serif"],
+                        "body-lg": ["Plus Jakarta Sans"]
+                    },
+                    /* 字号与行高排版系统 */
+                    "fontSize": {
+                        "label-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["40px", {"lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<!-- Google Fonts 图标库（Material 符号 + 衬线/无衬线字体） -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased">
+
+<!-- ==================== 顶部导航栏 ==================== -->
+<!-- 固定定位 + 半透明毛玻璃效果 -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_2px_24px_rgba(0,0,0,0.02)] transition-all duration-500 reveal active">
+<div class="h-20 max-w-[1200px] mx-auto px-margin-desktop flex items-center justify-between">
+	<!-- Logo 区域 -->
+	<div class="flex items-center gap-2 group cursor-pointer">
+		<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-110">
+			<span class="material-symbols-outlined text-on-primary text-[18px]">qr_code_2</span>
+		</div>
+		<span class="font-headline-md text-headline-md tracking-widest text-primary">灵感之源 AI</span>
+	</div>
+	<!-- 桌面端导航链接 -->
+	<nav class="hidden md:flex items-center gap-lg" data-active-classes="text-primary font-semibold">
+		<a class="font-body-md text-on-surface-variant hover:text-primary transition-all duration-300 hover:scale-105" data-path="journey" href="#">旅程</a>
+		<a aria-current="page" class="transition-all duration-300 text-primary font-semibold hover:scale-105" data-path="explore" href="#">发现</a>
+		<a class="font-body-md text-on-surface-variant hover:text-primary transition-all duration-300 hover:scale-105" data-path="footprints" href="#">足迹</a>
+		<a class="font-body-md text-on-surface-variant hover:text-primary transition-all duration-300 hover:scale-105" data-path="profile" href="#">我的</a>
+	</nav>
+	<!-- 右侧操作图标（搜索 + 个人中心） -->
+	<div class="flex items-center gap-md">
+		<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-all hover:scale-110">
+			<span class="material-symbols-outlined">search</span>
+		</button>
+		<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer transition-transform hover:scale-110">
+			<span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+		</div>
+	</div>
+</div>
+</header>
+
+<!-- ==================== 主内容区域 ==================== -->
+<main class="w-full pt-20 bg-surface min-h-screen">
+<div class="flex flex-col w-full">
+
+	<!-- ===== 核心双栏布局（12 列网格） ===== -->
+	<div class="max-w-[1200px] mx-auto px-margin-desktop w-full grid grid-cols-12 gap-gutter py-xl">
+
+		<!-- ===== 左侧栏：灵魂颜色 & 能量圆环 ===== -->
+		<div class="col-span-4 flex flex-col gap-lg sticky top-32 h-fit reveal">
+			<!-- 能量强度卡片 -->
+			<div class="relative overflow-hidden bg-surface-container-low rounded-xl p-lg flex flex-col items-center text-center shadow-sm transition-all duration-500 hover:shadow-lg hover:scale-[1.02]">
+				<!-- SVG 能量圆环 + 百分比中心文字 -->
+				<div class="relative w-48 h-48 mb-md flex items-center justify-center">
+					<svg class="w-full h-full -rotate-90 transform" viewbox="0 0 100 100">
+						<!-- 底色圆环（浅色轮廓） -->
+						<circle class="text-outline-variant/20" cx="50" cy="50" fill="transparent" r="45" stroke="currentColor" stroke-width="2"></circle>
+						<!-- 动态填充圆环（stroke-dashoffset 动画驱动） -->
+						<circle class="text-primary transition-all duration-[2000ms] ease-out" cx="50" cy="50" fill="transparent" id="energy-ring" r="45" stroke="currentColor" stroke-dasharray="282.7" stroke-dashoffset="282.7" stroke-width="2"></circle>
+					</svg>
+					<!-- 中心文字：能量百分比 + 标签 -->
+					<div class="absolute inset-0 flex flex-col items-center justify-center">
+						<span class="font-display-lg text-display-lg text-primary leading-none transition-all duration-500" id="energy-value">0%</span>
+						<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">能量强度</span>
+					</div>
+					<!-- 脉冲光晕（ping 动画） -->
+					<div class="absolute inset-0 rounded-full bg-primary/5 animate-ping"></div>
+				</div>
+				<!-- 卡片描述文字 -->
+				<div class="space-y-sm">
+					<h2 class="font-headline-md text-headline-md text-primary">精神丰盈</h2>
+					<p class="font-body-md text-body-md text-on-surface-variant px-sm">
+						您的内在世界正处于高度自洽状态，灵感的清泉正无声流淌，折射出深邃而宁静的光芒。
+					</p>
+				</div>
+				<!-- 分割线 -->
+				<div class="w-full h-px bg-outline-variant/30 my-lg"></div>
+				<!-- 两个子指标：觉察度 / 共鸣力 -->
+				<div class="w-full grid grid-cols-2 gap-sm">
+					<div class="flex flex-col p-sm bg-surface-container rounded-lg transition-colors hover:bg-surface-container-high">
+						<span class="font-label-sm text-label-sm text-on-secondary-container">觉察度</span>
+						<span class="font-headline-md text-headline-md text-primary">92%</span>
+					</div>
+					<div class="flex flex-col p-sm bg-surface-container rounded-lg transition-colors hover:bg-surface-container-high">
+						<span class="font-label-sm text-label-sm text-on-secondary-container">共鸣力</span>
+						<span class="font-headline-md text-headline-md text-primary">78%</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- 竖排装饰文字：灵魂底色 · 墨韵 -->
+			<div class="flex items-center gap-md px-sm opacity-60">
+				<div class="w-px h-12 bg-primary"></div>
+				<span class="font-label-sm text-label-sm tracking-widest [writing-mode:vertical-rl]">灵魂底色 · 墨韵</span>
+			</div>
+		</div>
+
+		<!-- ===== 右侧区域：疗愈卡片 + 指标项 ===== -->
+		<div class="col-span-8 flex flex-col gap-lg reveal">
+
+			<!-- 主要特色卡片：疗愈沉浸型评估结论 -->
+			<div class="relative group bg-surface-container-highest rounded-xl overflow-hidden shadow-xl flex flex-col md:flex-row min-h-[520px] transition-all duration-700 hover:shadow-2xl hover:scale-[1.01]">
+				<!-- 左半：水墨风格插图 -->
+				<div class="w-full md:w-1/2 relative overflow-hidden">
+					<img class="w-full h-full object-cover grayscale opacity-90 transition-transform duration-700 ambient-drift" alt="..." loading="lazy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy1coQwQ-yeg_BDMplYALoTQyDqHyr42QmTSdyECj2zyZTMUNFkw6s84JtHCkBoI-VFjJzxcde3KXcMih1ROSm3JogNlZQlAFeKojxfqMwBWlriKCtH5oCMmMM78G75eO1p5fSwGV_ZyAhZIGcaFMCtUxXvkekpqbHQbfvoRH7AJ2rSpAm5orYP24J8qjoOZ50SJfjbP48dSMFpv2qWodePhoskzq8QHh0miV7XUD5oH8GdnzjnEMdIVZYfvKVsvT0udKRc8qg"/>
+					<!-- 右侧渐变遮罩，使插图柔和过渡到文字区域 -->
+					<div class="absolute inset-0 bg-gradient-to-r from-transparent to-surface-container-highest"></div>
+				</div>
+				<!-- 右半：评估结论文字 -->
+				<div class="w-full md:w-1/2 p-xl flex flex-col justify-center gap-md relative z-10">
+					<div class="inline-flex items-center gap-sm">
+						<span class="w-8 h-px bg-primary"></span>
+						<span class="font-label-sm text-label-sm tracking-[0.2em] text-on-surface-variant">评估结论</span>
+					</div>
+					<h1 class="font-display-lg text-display-lg text-primary">疗愈沉浸型</h1>
+					<div class="space-y-md">
+						<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+							您拥有一种在嘈杂中瞬间回归宁静的天赋。就像水墨滴入宣纸，您的感知是流动的、包容的，能够细腻地捕捉到环境中的微妙情感。
+						</p>
+						<p class="font-body-md text-body-md text-on-surface-variant">
+							建议您保持定期的冥想与留白，在无声处听惊雷，在极简中见繁花。
+						</p>
+					</div>
+					<!-- 行动号召按钮 -->
+					<div class="pt-lg">
+						<button class="bg-primary text-on-primary px-lg py-sm rounded-full font-label-sm shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 flex items-center gap-md group/btn">
+							开启专属疗愈旅程
+							<span class="material-symbols-outlined text-[18px] transition-transform group-hover/btn:translate-x-1">arrow_forward</span>
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- 次要指标卡片：思维模式 & 审美倾向 -->
+			<div class="grid grid-cols-2 gap-gutter">
+				<div class="bg-surface-container rounded-xl p-lg flex items-center gap-lg transition-all duration-500 hover:shadow-md hover:scale-105 reveal">
+					<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center transition-colors hover:bg-primary/5">
+						<span class="material-symbols-outlined text-primary">psychology</span>
+					</div>
+					<div class="flex flex-col">
+						<span class="font-label-sm text-label-sm text-on-surface-variant">思维模式</span>
+						<span class="font-headline-md text-headline-md">直觉驱动</span>
+					</div>
+				</div>
+				<div class="bg-surface-container rounded-xl p-lg flex items-center gap-lg transition-all duration-500 hover:shadow-md hover:scale-105 reveal">
+					<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center transition-colors hover:bg-primary/5">
+						<span class="material-symbols-outlined text-primary">filter_vintage</span>
+					</div>
+					<div class="flex flex-col">
+						<span class="font-label-sm text-label-sm text-on-surface-variant">审美倾向</span>
+						<span class="font-headline-md text-headline-md">自然主义</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ===== 底部区域：审美光谱滑块 ===== -->
+	<div class="w-full bg-surface-container-low py-xl border-t border-outline-variant/10 reveal">
+		<div class="max-w-[1200px] mx-auto px-margin-desktop">
+			<div class="flex flex-col gap-lg">
+				<!-- 标题行 + 图例 -->
+				<div class="flex justify-between items-end">
+					<div class="space-y-xs">
+						<span class="font-label-sm text-label-sm text-on-secondary-container">审美光谱</span>
+						<h3 class="font-headline-md text-headline-md text-primary">感知维度分布</h3>
+					</div>
+					<!-- 图例：理型（浅色圆点） / 感性（深色圆点） -->
+					<div class="flex gap-lg">
+						<div class="flex items-center gap-sm">
+							<div class="w-3 h-3 rounded-full bg-primary/20"></div>
+							<span class="font-label-sm text-label-sm">理型</span>
+						</div>
+						<div class="flex items-center gap-sm">
+							<div class="w-3 h-3 rounded-full bg-primary"></div>
+							<span class="font-label-sm text-label-sm">感性</span>
+						</div>
+					</div>
+				</div>
+				<!-- 自定义滑块组件 -->
+				<div class="relative w-full h-32 flex items-center group cursor-crosshair">
+					<!-- 背景轨道 -->
+					<div class="absolute w-full h-1 bg-outline-variant/20 rounded-full"></div>
+					<!-- 填充轨道（由 JS 控制宽度动画） -->
+					<div class="absolute left-0 h-1 bg-primary rounded-full transition-all duration-1000 ease-in-out" id="spectrum-fill" style="width: 0%"></div>
+					<!-- 刻度标记：冷静 / 平衡 / 热烈 -->
+					<div class="absolute inset-0 flex justify-between items-center pointer-events-none">
+						<div class="flex flex-col items-center -mt-12 transition-opacity duration-500 opacity-50 group-hover:opacity-100">
+							<span class="font-label-sm text-label-sm text-on-surface-variant mb-xs">冷静</span>
+							<div class="w-px h-4 bg-outline-variant"></div>
+						</div>
+						<div class="flex flex-col items-center -mt-12 transition-opacity duration-500 opacity-50 group-hover:opacity-100">
+							<span class="font-label-sm text-label-sm text-on-surface-variant mb-xs">平衡</span>
+							<div class="w-px h-4 bg-outline-variant"></div>
+						</div>
+						<div class="flex flex-col items-center -mt-12 transition-opacity duration-500 opacity-50 group-hover:opacity-100">
+							<span class="font-label-sm text-label-sm text-on-surface-variant mb-xs">热烈</span>
+							<div class="w-px h-4 bg-outline-variant"></div>
+						</div>
+					</div>
+					<!-- 滑块手柄（由 JS 控制 left 位置动画） -->
+					<div class="absolute left-[0%] -ml-8 w-16 h-16 bg-surface shadow-xl rounded-full border-4 border-primary flex items-center justify-center transition-all duration-1000 ease-in-out hover:scale-110 active:scale-95 group-hover:shadow-2xl" id="spectrum-handle">
+						<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center">
+							<span class="material-symbols-outlined text-primary scale-75 animate-spin-slow">flare</span>
+						</div>
+					</div>
+				</div>
+				<!-- 滑块两端标签：STRUCTURAL · 结构 / FLUID · 流动 -->
+				<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant opacity-50 italic">
+					<span>STRUCTURAL · 结构</span>
+					<span>FLUID · 流动</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+</main>
+
+<!-- ==================== 页脚 ==================== -->
+<footer class="w-full bg-surface-container-low py-xl border-t border-outline-variant/10 reveal">
+<div class="max-w-[1200px] mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md text-on-surface-variant font-label-sm uppercase tracking-widest">
+	<span class="transition-colors hover:text-primary cursor-default">© 二零二四 灵感之源 AI</span>
+	<div class="flex gap-lg">
+		<span class="cursor-pointer transition-colors hover:text-primary hover:scale-105">关于我们</span>
+		<span class="cursor-pointer transition-colors hover:text-primary hover:scale-105">隐私政策</span>
+		<span class="cursor-pointer transition-colors hover:text-primary hover:scale-105">联系我们</span>
+	</div>
+	<div class="flex gap-lg">
+		<a class="cursor-pointer transition-colors hover:text-primary hover:scale-105" href="../02-emotion-review/index.html">情绪回顾</a>
+		<a class="cursor-pointer transition-colors hover:text-primary hover:scale-105" href="../03-aesthetic-quiz/index.html">美学测评</a>
+		<a class="cursor-pointer transition-colors hover:text-primary hover:scale-105" href="../04-travel-dashboard/index.html">旅行看板</a>
+		<a class="cursor-pointer transition-colors hover:text-primary hover:scale-105" href="../05-journey-itinerary/index.html">行程详情</a>
+	</div>
+</div>
+</footer>
+
+<!-- ==================== JavaScript 交互逻辑 ==================== -->
+<script>
+        // DOM 加载完成后的入口函数
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // ===== 1. Intersection Observer：滚动入场动画 =====
+            // 当 .reveal 元素进入视口时添加 .active 类，触发 CSS 渐入效果
+            const observerOptions = {
+                threshold: 0.1,             // 元素露出 10% 即触发
+                rootMargin: '0px 0px -50px 0px'  // 底部提前 50px 触发
+            };
+
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // 如果当前元素包含能量圆环，启动能量数值/圆环动画
+                        if (entry.target.querySelector('#energy-value')) {
+                            startEnergyAnimation();
+                        }
+                        // 如果当前元素包含光谱滑块，启动滑块移动动画
+                        if (entry.target.querySelector('#spectrum-handle')) {
+                            startSpectrumAnimation();
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // 对所有 .reveal 元素启用观察
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+            // ===== 2. 能量圆环动画 =====
+            // 从 0% 递增到目标值 85%，同步驱动 SVG stroke-dashoffset
+            function startEnergyAnimation() {
+                const targetEnergy = 85;                        // 目标百分比
+                const energyText = document.getElementById('energy-value');
+                const energyRing = document.getElementById('energy-ring');
+
+                // 防止重复触发
+                if (energyText.dataset.animated === 'true') return;
+                energyText.dataset.animated = 'true';
+
+                let currentEnergy = 0;
+                const duration = 2000;                          // 总时长 2 秒
+                const step = targetEnergy / (duration / 16);     // 每帧（约16ms）增量
+
+                // 逐帧更新文字数字
+                const animateText = () => {
+                    if (currentEnergy < targetEnergy) {
+                        currentEnergy += step;
+                        energyText.innerText = Math.round(currentEnergy) + '%';
+                        requestAnimationFrame(animateText);
+                    } else {
+                        energyText.innerText = targetEnergy + '%';
+                    }
+                };
+
+                // 延迟 400ms 后同时开始文字计数和圆环动画
+                setTimeout(() => {
+                    animateText();
+                    // SVG 圆环周长 ≈ 2 * π * 45 ≈ 282.7，根据百分比计算偏移量
+                    const offset = 282.7 * (1 - targetEnergy / 100);
+                    energyRing.style.strokeDashoffset = offset;
+                }, 400);
+            }
+
+            // ===== 3. 光谱滑块动画 =====
+            // 滑块手柄和填充条从 0% 移动到目标值 75%
+            function startSpectrumAnimation() {
+                const handle = document.getElementById('spectrum-handle');
+                const fill = document.getElementById('spectrum-fill');
+                const targetValue = 75;
+
+                // 防止重复触发
+                if (handle.dataset.animated === 'true') return;
+                handle.dataset.animated = 'true';
+
+                // 延迟 600ms 后开始滑动动画（CSS transition 驱动）
+                setTimeout(() => {
+                    handle.style.left = targetValue + '%';
+                    fill.style.width = targetValue + '%';
+                }, 600);
+            }
+
+            // ===== 4. 通用按钮点击反馈 =====
+            // 阻止所有空链接（href="#"）的默认跳转行为
+            document.querySelectorAll('button, a').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    if(el.getAttribute('href') === '#') e.preventDefault();
+                });
+            });
+        });
+    </script>
+
+</body></html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>灵感之源 AI - 旅行目的地看板</title><meta content="灵感之源 AI 旅行看板 - 景德镇实时行程导航与周边探索" name="description"/><!-- 基础样式：重置边距、禁止滚动回弹、隐藏滚动条 --><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}/* 深色模式 */:root{--surface:#fdf8f8;--surface-dim:#ddd9d8;--surface-bright:#fdf8f8;--surface-container-lowest:#ffffff;--surface-container-low:#f7f3f2;--surface-container:#f1edec;--surface-container-high:#ebe7e6;--surface-container-highest:#e5e2e1;--on-surface:#1c1b1b;--on-surface-variant:#444748;--background:#fdf8f8;--primary:#000000;--on-primary:#ffffff;--primary-container:#1c1b1b;--on-primary-container:#858383;--secondary:#5d5f58;--on-secondary:#ffffff;--secondary-container:#e3e3da;--surface-tint:#5f5e5e;--outline:#747878;--outline-variant:#c4c7c7;--error:#ba1a1a;--on-error:#ffffff;--error-container:#ffdad6;--on-error-container:#93000a;--tertiary-container:#1c1b1a;--on-tertiary:#ffffff;--tertiary:#000000;--inverse-surface:#313030;--inverse-on-surface:#f4f0ef;--on-background:#1c1b1b;--on-primary-fixed:#1c1b1b;--on-primary-fixed-variant:#474746;--on-secondary-fixed:#1a1c17;--on-secondary-fixed-variant:#464741;--on-tertiary-fixed:#1c1b1a;--on-tertiary-fixed-variant:#484645;--primary-fixed:#e5e2e1;--primary-fixed-dim:#c8c6c5;--secondary-fixed:#e3e3da;--secondary-fixed-dim:#c6c7bf;--tertiary-fixed:#e6e2df;--tertiary-fixed-dim:#cac6c4;--inverse-primary:#c8c6c5;}@media(prefers-color-scheme:dark){:root{--surface:#1c1b1b;--surface-dim:#141313;--surface-bright:#232222;--surface-container-lowest:#111111;--surface-container-low:#1e1d1d;--surface-container:#222121;--surface-container-high:#2b2a2a;--surface-container-highest:#363434;--on-surface:#e5e2e1;--on-surface-variant:#c4c7c7;--background:#1c1b1b;--primary:#ffffff;--on-primary:#000000;--primary-container:#e5e2e1;--on-primary-container:#3b3a3a;--secondary:#c6c7bf;--on-secondary:#1a1c17;--secondary-container:#464741;--surface-tint:#c8c6c5;--outline:#8e9292;--outline-variant:#444748;--error:#ffb4ab;--on-error:#690005;--error-container:#93000a;--on-error-container:#ffdad6;--tertiary:#ffffff;--on-tertiary:#000000;--tertiary-container:#e6e2df;--on-tertiary-container:#3b3a3a;--inverse-surface:#e5e2e1;--inverse-on-surface:#1c1b1b;--on-background:#e5e2e1;--inverse-primary:#000000;}}</style><!-- Tailwind CSS 核心库 --><script src="https://cdn.tailwindcss.com"></script><!-- 自定义主题：颜色（Material Design 3 语义）、间距、圆角、字体、字号 --><script id="tailwind-config">// Tailwind 自定义主题配置：颜色系统遵循 Material Design 3 的色调语义命名，覆盖默认间距/圆角/字体尺度tailwind.config={theme:{extend:{"colors":{"tertiary-container":"#1c1b1a","surface-tint":"var(--surface-tint)","on-primary-container":"var(--on-primary-container)","on-tertiary":"#ffffff","error":"var(--error)","inverse-surface":"#313030","primary-container":"var(--primary-container)","secondary-fixed":"#e3e3da","secondary-container":"var(--secondary-container)","tertiary":"#000000","surface":"var(--surface)","primary-fixed-dim":"#c8c6c5","primary":"var(--primary)","on-secondary-container":"#63655e","surface-variant":"#e5e2e1","outline-variant":"var(--outline-variant)","tertiary-fixed-dim":"#cac6c4","surface-container-high":"var(--surface-container-high)","on-tertiary-fixed-variant":"#484645","surface-bright":"var(--surface-bright)","on-secondary-fixed-variant":"#464741","inverse-on-surface":"#f4f0ef","on-background":"#1c1b1b","on-primary-fixed-variant":"#474746","on-error":"var(--on-error)","on-tertiary-fixed":"#1c1b1a","on-surface":"var(--on-surface)","error-container":"var(--error-container)","tertiary-fixed":"#e6e2df","on-secondary-fixed":"#1a1c17","on-tertiary-container":"#868382","background":"var(--background)","on-error-container":"var(--on-error-container)","on-secondary":"var(--on-secondary)","secondary-fixed-dim":"#c6c7bf","surface-container-lowest":"var(--surface-container-lowest)","primary-fixed":"#e5e2e1","on-primary":"var(--on-primary)","on-primary-fixed":"#1c1b1b","outline":"var(--outline)","inverse-primary":"#c8c6c5","surface-container-highest":"var(--surface-container-highest)","surface-container":"var(--surface-container)","surface-dim":"var(--surface-dim)","surface-container-low":"var(--surface-container-low)","secondary":"var(--secondary)","on-surface-variant":"var(--on-surface-variant)"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"xl":"80px","margin-mobile":"20px","gutter":"24px","md":"24px","sm":"12px","margin-desktop":"64px","xs":"4px","base":"8px","lg":"48px"},"fontFamily":{"label-sm":["Plus Jakarta Sans"],"headline-md":["Noto Serif"],"body-md":["Plus Jakarta Sans"],"display-lg-mobile":["Noto Serif"],"display-lg":["Noto Serif"],"body-lg":["Plus Jakarta Sans"]},"fontSize":{"label-sm":["13px",{"lineHeight":"18px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"500"}],"body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.01em","fontWeight":"600"}],"display-lg":["40px",{"lineHeight":"52px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}]}}}}</script>
+<!-- Google Fonts preconnect --><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- Material Symbols 图标字体 --><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- Noto Serif + Plus Jakarta Sans 字体库（中英文混排） --><link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@100..900&family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/></head><!-- 页面主体：surface 背景、body-md 字体、抗锯齿 --><body class="bg-surface font-body-md text-on-surface antialiased"><!-- 顶部导航栏：固定定位 + 毛玻璃效果 --><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_2px_24px_rgba(0,0,0,0.02)] transition-all duration-500"><div class="h-20 max-w-[1200px] mx-auto px-margin-desktop flex items-center justify-between"><!-- Logo：图标 + 品牌名 --><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">qr_code_2</span></div><span class="font-headline-md text-headline-md tracking-widest text-primary">灵感之源 AI</span></div><!-- 主导航（桌面端显示）：旅程、发现、足迹、我的 --><nav class="hidden md:flex items-center gap-lg" data-active-classes="text-primary font-semibold"><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" data-path="journey" href="#">旅程</a><a aria-current="page" class="transition-colors duration-300 text-primary font-semibold" data-path="explore" href="#">发现</a><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" data-path="footprints" href="#">足迹</a><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" data-path="profile" href="#">我的</a></nav><!-- 右侧工具栏：搜索 + 个人资料 --><div class="flex items-center gap-md"><button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">search</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><!-- 主内容区域 --><main class="w-full pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- 面包屑导航：我的旅程 > 景德镇：瓷之源 > 当日动态看板 -->
+<div class="max-w-[1200px] mx-auto w-full px-margin-desktop pt-lg pb-md">
+<div class="flex items-center gap-base text-on-surface-variant font-label-sm">
+<span class="opacity-60">我的旅程</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="opacity-60">景德镇：瓷之源</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-bold">当日动态看板</span>
+</div>
+</div>
+<!-- 仪表盘主网格：12 列布局，左 3 + 中 6 + 右 3 -->
+<div class="max-w-[1200px] mx-auto w-full px-margin-desktop grid grid-cols-12 gap-gutter items-start pb-xl">
+<!-- 左侧栏（3列）：天气、AI 建议、行程回顾 -->
+<aside class="col-span-3 flex flex-col gap-lg">
+<!-- 天气与时间状态卡片 -->
+<div class="bg-surface-container p-lg rounded-xl flex flex-col gap-md shadow-sm">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-tighter">当前天气 / 景德镇</span>
+<span class="font-headline-md text-primary mt-xs">22°C 晴间多云</span>
+</div>
+<span class="material-symbols-outlined text-primary text-[32px]">wb_sunny</span>
+</div>
+<div class="h-[1px] bg-outline-variant/20 w-full"></div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">schedule</span>
+<span class="font-body-md text-on-surface">14:30 · 下午时光</span>
+</div>
+</div>
+<!-- AI 智能建议卡片：深色渐变背景 + 底部发光装饰圆 -->
+<div class="relative bg-primary text-on-primary p-lg rounded-xl overflow-hidden shadow-xl">
+<div class="relative z-10">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+<span class="font-label-sm uppercase">灵感之源 AI 建议</span>
+</div>
+<p class="font-body-md leading-relaxed opacity-90">
+            “陶溪川的午后光影正值巅峰。建议在斜阳洒进老窑房时，前往‘美术馆’二楼。那里的自然采光会为你的摄影作品增添极佳的质感。”
+          </p>
+</div>
+<!-- AI 发光背景装饰 -->
+<div class="absolute -right-8 -bottom-8 w-32 h-32 bg-surface-variant/20 blur-3xl rounded-full"></div>
+</div>
+<!-- 今日行程回顾：时间线形式展示三个节点 -->
+<div class="flex flex-col gap-md px-base">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-widest">今日行程回顾</span>
+<div class="flex flex-col gap-lg border-l border-outline-variant/30 ml-2 pl-6 py-2">
+<div class="relative">
+<div class="absolute -left-[31px] top-1 w-2 h-2 rounded-full bg-outline"></div>
+<span class="font-label-sm text-on-surface-variant">09:30</span>
+<div class="font-body-md text-on-surface font-semibold">古窑民俗博览区</div>
+</div>
+<div class="relative">
+<div class="absolute -left-[31px] top-1 w-2 h-2 rounded-full bg-outline"></div>
+<span class="font-label-sm text-on-surface-variant">12:00</span>
+<div class="font-body-md text-on-surface font-semibold">御窑厂遗址午餐</div>
+</div>
+<div class="relative">
+<div class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-surface"></div>
+<span class="font-label-sm text-primary font-bold">进行中</span>
+<div class="font-body-md text-primary font-bold">陶溪川文创街区</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- 中间栏（6列）：下一站目的地主视觉 + 地图快照 -->
+<div class="col-span-6 flex flex-col gap-gutter">
+<!-- 主视觉卡片：封面图 + 悬停放缩效果 -->
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-highest shadow-xl">
+<!-- 目的地背景图片 -->
+<div class="aspect-[4/5] w-full relative">
+<img loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="A cinematic, high-angle wide shot of Tao Xi Chuan Creative Park in Jingdezhen during golden hour. The red brick industrial chimneys stand tall against a soft lavender and orange sky. Modern glass architecture intermingles with vintage industrial workshops. Minimalist tourists walk through open plazas. Warm, ethereal lighting, high contrast, zen aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAb1KlrJX6Mjf1d1rTwyN1JNL91T29WC-fPj2gfW1QGm9Y_marIyugHYXc0fvwx7q4M1R0jwF3YB1qLTZ9mB7Lhq5gx22uh8vuxIlbxebNlQMrkAkGX2WnPFjRlYV7mlbA34UrKSUSs-TU3Ko5PAlhhjUXeDHELVZHyxSryn4_OoeyShD2pr3zw-B9Vhr2FEDgV7RNhAinJZNwKvivsty2gqsnR5aCWOLlHms3_7FWl1XHXiM5CZleIFZf2in7fX5EHXpQ5B2DG"/>
+<!-- 渐变遮罩：从黑到透明，提升文字可读性 -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<!-- 浮动实时热门标签 -->
+<div class="absolute top-md left-md flex gap-sm">
+<div class="bg-surface/90 backdrop-blur-md px-md py-sm rounded-full flex items-center gap-sm shadow-sm">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="font-label-sm text-primary">实时热门</span>
+</div>
+</div>
+</div>
+<!-- 底部信息叠加：目的地标题 + 预计到达时间 + 距离 + 按钮 -->
+<div class="absolute bottom-0 left-0 w-full p-xl text-on-primary">
+<div class="flex flex-col gap-sm">
+<span class="font-label-sm uppercase tracking-[0.2em] opacity-80">下一站 · 目的地</span>
+<h2 class="font-display-lg text-[48px] leading-tight">陶溪川文创街区</h2>
+<div class="flex items-center gap-lg mt-md">
+<div class="flex flex-col">
+<span class="font-label-sm opacity-60 uppercase">预计到达</span>
+<span class="font-headline-md">15 分钟</span>
+</div>
+<div class="w-[1px] h-8 bg-on-primary/20"></div>
+<div class="flex flex-col">
+<span class="font-label-sm opacity-60 uppercase">距离</span>
+<span class="font-headline-md">3.2 公里</span>
+</div>
+</div>
+<div class="flex gap-md mt-lg">
+<button class="bg-on-primary text-primary px-xl py-md rounded-full font-label-sm uppercase tracking-widest hover:bg-surface-variant transition-colors flex items-center gap-sm shadow-lg">
+<span class="material-symbols-outlined">near_me</span>
+                开始导航
+              </button>
+<button class="bg-white/10 backdrop-blur-md border border-white/20 text-on-primary px-lg py-md rounded-full font-label-sm uppercase tracking-widest hover:bg-white/20 transition-colors">
+                查看详情
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- 实时地图快照占位：灰度效果，点击展开 -->
+<div class="w-full h-48 rounded-xl shadow-sm grayscale opacity-80 hover:grayscale-0 transition-all duration-500 cursor-pointer overflow-hidden relative" data-location="陶溪川文创街区, 景德镇" style="">
+<div class="absolute inset-0 flex items-center justify-center bg-primary/5 pointer-events-none">
+<span class="font-label-sm text-primary/40 tracking-widest">点击展开交互地图</span>
+</div>
+</div>
+</div>
+<!-- 右侧栏（3列）：预警、周边探索、快捷操作 -->
+<aside class="col-span-3 flex flex-col gap-lg">
+<!-- 拥挤度预警卡片 -->
+<div class="bg-error-container text-on-error-container p-lg rounded-xl shadow-sm border border-error/10">
+<div class="flex items-center gap-sm mb-sm text-error">
+<span class="material-symbols-outlined">error</span>
+<span class="font-label-sm uppercase">拥挤度预警</span>
+</div>
+<h3 class="font-headline-md text-[18px] mb-xs">雕塑瓷厂区域</h3>
+<p class="font-body-md opacity-80">当前人流量极高，建议推迟一小时前往或改道至周边的"三宝村"。</p>
+</div>
+<!-- 周边探索推荐列表 -->
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-center px-base">
+<span class="font-label-sm text-on-surface-variant uppercase tracking-widest">周边探索</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">refresh</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- 推荐项 1：三宝村咖啡馆 -->
+<div class="group bg-surface-container hover:bg-surface-container-high p-md rounded-xl transition-all duration-300 cursor-pointer flex gap-md shadow-sm">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img loading="lazy" class="w-full h-full object-cover" alt="Close up shot of a minimalist artisan cafe in Sambo Village, Jingdezhen. A single handmade ceramic cup sits on a rough wooden table. Soft morning light, neutral tones, wabi-sabi aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuAryFUhngD_L7LDRGJCl2KBiy5nfp8kOTj-OByy_GClkitmw90kJ_UnHSoa-FusnlwuNvPX6Fx0r5a6tkl8pMrNTNMvBi8QUlFHb4mQg14qvJ4aLIUukGgaFAr0_D1BcevisFFGKl_wyJhHw4dd6Ii10W9WR4ZyredT2tvOco1dCaV8rdRbU6U0xWb9s_YR33CnzpoyNuSHBsttqCTlNbJHALYvpjHX8jfGoBoZ4koF-xIwhije7TFcNcH03bKCmTRlGCzw56"/>
+</div>
+<div class="flex flex-col justify-center">
+<span class="font-label-sm text-on-surface-variant">咖啡馆 · 0.8km</span>
+<h4 class="font-body-md font-bold text-primary">三宝村 · 寻味咖啡</h4>
+<div class="flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-on-surface-variant">4.9 (120+)</span>
+</div>
+</div>
+</div>
+<!-- 推荐项 2：光影陶艺工作室 -->
+<div class="group bg-surface-container hover:bg-surface-container-high p-md rounded-xl transition-all duration-300 cursor-pointer flex gap-md shadow-sm">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img loading="lazy" class="w-full h-full object-cover" alt="Hands of an artisan shaping clay on a pottery wheel. Soft focus, rustic studio environment, scattered ceramic tools. Warm indoor lighting, artistic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9a5tgzU8etYhiPuHrIEhXtb_Ur53poXpZ75lVuBoOSp2qRbJEBn2wJDthWqNBZ4HXveLEC5b_-rHPhTnTQ6YTAjnmY70yAmYJq0zSyAAFsN7DEHK8d4UQrmAKxSwRaoFwatulJgvVyPYF56Zw3g1CagevAmWTWHSW-eKE2CEwQjqqQn1yWfUSilVMF8WjNBq9ClDGTehiNP0xKv3uTdLjQtc_-HyqxZUAleTwNu5P3FhkWbPH9Le7-31sjx35behsbt0eszmN"/>
+</div>
+<div class="flex flex-col justify-center">
+<span class="font-label-sm text-on-surface-variant">体验坊 · 1.2km</span>
+<h4 class="font-body-md font-bold text-primary">光影陶艺工作室</h4>
+<div class="flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-on-surface-variant">4.7 (80+)</span>
+</div>
+</div>
+</div>
+<!-- 推荐项 3：泥火之间艺术空间 -->
+<div class="group bg-surface-container hover:bg-surface-container-high p-md rounded-xl transition-all duration-300 cursor-pointer flex gap-md shadow-sm">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img loading="lazy" class="w-full h-full object-cover" alt="Interior of a modern ceramic gallery. White walls, minimalist pedestals holding unique porcelain sculptures. Dramatic spotlighting, clean lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnPouhNBVL5SeScC063nUrDBFk6h57kC9N_3Q5M0lw0kLrP-WYkpCW4fiR23DA-KiNSGu4wFQrZFJoKQRj51ExPEwAiiW4JOr3S_VWCFq82A0aYNzdkse8bydZpi6B38gkB9kaXKogrM1Czh0QquIRmeZawpgL3KpU8Z7i0_zS67dIHkfGS51T-w1GVHQBwBmfiSLhPJtGagMWVc2374ZEocJfwRdawgq2HipryUM_JOSVkNvnuk7Wa0YyHoXGzsomguO1bkrJ"/>
+</div>
+<div class="flex flex-col justify-center">
+<span class="font-label-sm text-on-surface-variant">美术馆 · 1.5km</span>
+<h4 class="font-body-md font-bold text-primary">泥火之间艺术空间</h4>
+<div class="flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-on-surface-variant">4.8 (210+)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 快捷操作区：紧急求助、呼叫打车、医疗点 -->
+<div class="mt-auto border-t border-outline-variant/20 pt-lg flex justify-between">
+<button class="flex flex-col items-center gap-xs group">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
+<span class="material-symbols-outlined">call</span>
+</div>
+<span class="font-label-sm text-on-surface-variant">紧急求助</span>
+</button>
+<button class="flex flex-col items-center gap-xs group">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
+<span class="material-symbols-outlined">directions_car</span>
+</div>
+<span class="font-label-sm text-on-surface-variant">呼叫打车</span>
+</button>
+<button class="flex flex-col items-center gap-xs group">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
+<span class="material-symbols-outlined">local_hospital</span>
+</div>
+<span class="font-label-sm text-on-surface-variant">医疗点</span>
+</button>
+</div>
+</aside>
+</div>
+<!-- 微交互脚本：为探索项绑定悬停控制台日志 -->
+<script>
+    // 遍历所有 .group 元素，监听 mouseenter 事件
+    // 当前为占位逻辑，后续可扩展为动画触发或跟踪分析
+    document.querySelectorAll('.group').forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        // Trigger haptic-like visual feedback or simple log
+        console.log('Hover on exploration item');
+      });
+    });
+  </script>
+</div></main><!-- 页脚：版权信息 + 法律声明链接 --><footer class="w-full bg-surface-container-low py-xl mt-xl border-t border-outline-variant/10"><div class="max-w-[1200px] mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md text-on-surface-variant font-label-sm uppercase tracking-widest"><span>© 二零二四 灵感之源 AI</span><div class="flex gap-lg"><span>关于我们</span><span>隐私政策</span><span>联系我们</span></div><div class="flex gap-lg"><a class="hover:text-primary cursor-pointer transition-colors" href="../01-assessment-result/index.html">测评结果</a><a class="hover:text-primary cursor-pointer transition-colors" href="../02-emotion-review/index.html">情绪回顾</a><a class="hover:text-primary cursor-pointer transition-colors" href="../03-aesthetic-quiz/index.html">美学测评</a><a class="hover:text-primary cursor-pointer transition-colors" href="../05-journey-itinerary/index.html">行程详情</a></div></div></footer></body></html>

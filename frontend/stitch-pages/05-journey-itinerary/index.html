@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<!-- ============================== -->
+<!-- 页面起始：文档类型与字符编码       -->
+<!-- ============================== -->
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="灵感之源 AI 旅行规划 - 景德镇侘寂美学旅程详情页" name="description"/>
+<title>灵感之源 AI - 景德镇旅程详情</title>
+
+<!-- ============================== -->
+<!-- 全局基础样式 + 动画定义           -->
+<!-- ============================== -->
+<style>
+
+/* base: 重置默认边距，禁止 overscroll 行为，确保首尾元素无多余间距 */
+@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}
+
+/* 隐藏滚动条（保留滚动功能） */
+::-webkit-scrollbar{display:none;}
+
+/* Accessibility: Respect prefers-reduced-motion */
+/* 可访问性：尊重用户"减少动效"系统偏好 — 将所有动画/过渡时长压缩到极短 */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* pulse-subtle: 柔和脉冲动画，用于 hover 时的轻微放大反馈 */
+@keyframes pulse-subtle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.hover-pulse:hover {
+  animation: pulse-subtle 2s infinite ease-in-out;
+}
+/* 深色模式自定义属性 */
+:root{--surface:#fdf8f8;--surface-dim:#ddd9d8;--surface-bright:#fdf8f8;--surface-container-lowest:#ffffff;--surface-container-low:#f7f3f2;--surface-container:#f1edec;--surface-container-high:#ebe7e6;--surface-container-highest:#e5e2e1;--on-surface:#1c1b1b;--on-surface-variant:#444748;--background:#fdf8f8;--primary:#000000;--on-primary:#ffffff;--primary-container:#1c1b1b;--on-primary-container:#858383;--secondary:#5d5f58;--on-secondary:#ffffff;--secondary-container:#e3e3da;--surface-tint:#5f5e5e;--outline:#747878;--outline-variant:#c4c7c7;--error:#ba1a1a;--on-error:#ffffff;--error-container:#ffdad6;--on-error-container:#93000a;--tertiary-container:#1c1b1a;--on-tertiary:#ffffff;--tertiary:#000000;--inverse-surface:#313030;--inverse-on-surface:#f4f0ef;--on-background:#1c1b1b;--on-primary-fixed:#1c1b1b;--on-primary-fixed-variant:#474746;--on-secondary-fixed:#1a1c17;--on-secondary-fixed-variant:#464741;--on-tertiary-fixed:#1c1b1a;--on-tertiary-fixed-variant:#484645;--primary-fixed:#e5e2e1;--primary-fixed-dim:#c8c6c5;--secondary-fixed:#e3e3da;--secondary-fixed-dim:#c6c7bf;--tertiary-fixed:#e6e2df;--tertiary-fixed-dim:#cac6c4;--inverse-primary:#c8c6c5;}
+@media(prefers-color-scheme:dark){:root{--surface:#1c1b1b;--surface-dim:#141313;--surface-bright:#232222;--surface-container-lowest:#111111;--surface-container-low:#1e1d1d;--surface-container:#222121;--surface-container-high:#2b2a2a;--surface-container-highest:#363434;--on-surface:#e5e2e1;--on-surface-variant:#c4c7c7;--background:#1c1b1b;--primary:#ffffff;--on-primary:#000000;--primary-container:#e5e2e1;--on-primary-container:#3b3a3a;--secondary:#c6c7bf;--on-secondary:#1a1c17;--secondary-container:#464741;--surface-tint:#c8c6c5;--outline:#8e9292;--outline-variant:#444748;--error:#ffb4ab;--on-error:#690005;--error-container:#93000a;--on-error-container:#ffdad6;--tertiary:#ffffff;--on-tertiary:#000000;--tertiary-container:#e6e2df;--on-tertiary-container:#3b3a3a;--inverse-surface:#e5e2e1;--inverse-on-surface:#1c1b1b;--on-background:#e5e2e1;--inverse-primary:#000000;}}
+</style>
+
+<!-- Tailwind CSS CDN + 自定义主题配置（色彩、圆角、间距、字体、字号） -->
+<script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={theme:{extend:{"colors":{"tertiary-container":"var(--tertiary-container)","surface-tint":"var(--surface-tint)","on-primary-container":"var(--on-primary-container)","on-tertiary":"var(--on-tertiary)","error":"var(--error)","inverse-surface":"var(--inverse-surface)","primary-container":"var(--primary-container)","secondary-fixed":"var(--secondary-fixed)","secondary-container":"var(--secondary-container)","tertiary":"var(--tertiary)","surface":"var(--surface)","primary-fixed-dim":"var(--primary-fixed-dim)","primary":"var(--primary)","on-secondary-container":"#63655e","surface-variant":"#e5e2e1","outline-variant":"var(--outline-variant)","tertiary-fixed-dim":"var(--tertiary-fixed-dim)","surface-container-high":"var(--surface-container-high)","on-tertiary-fixed-variant":"var(--on-tertiary-fixed-variant)","surface-bright":"var(--surface-bright)","on-secondary-fixed-variant":"var(--on-secondary-fixed-variant)","inverse-on-surface":"var(--inverse-on-surface)","on-background":"var(--on-background)","on-primary-fixed-variant":"var(--on-primary-fixed-variant)","on-error":"var(--on-error)","on-tertiary-fixed":"var(--on-tertiary-fixed)","on-surface":"var(--on-surface)","error-container":"var(--error-container)","tertiary-fixed":"var(--tertiary-fixed)","on-secondary-fixed":"var(--on-secondary-fixed)","on-tertiary-container":"#868382","background":"var(--background)","on-error-container":"var(--on-error-container)","on-secondary":"var(--on-secondary)","secondary-fixed-dim":"var(--secondary-fixed-dim)","surface-container-lowest":"var(--surface-container-lowest)","primary-fixed":"var(--primary-fixed)","on-primary":"var(--on-primary)","on-primary-fixed":"var(--on-primary-fixed)","outline":"var(--outline)","inverse-primary":"var(--inverse-primary)","surface-container-highest":"var(--surface-container-highest)","surface-container":"var(--surface-container)","surface-dim":"var(--surface-dim)","surface-container-low":"var(--surface-container-low)","secondary":"var(--secondary)","on-surface-variant":"var(--on-surface-variant)"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"xl":"80px","margin-mobile":"20px","gutter":"24px","md":"24px","sm":"12px","margin-desktop":"64px","xs":"4px","base":"8px","lg":"48px"},"fontFamily":{"label-sm":["Plus Jakarta Sans"],"headline-md":["Noto Serif"],"body-md":["Plus Jakarta Sans"],"display-lg-mobile":["Noto Serif"],"display-lg":["Noto Serif"],"body-lg":["Plus Jakarta Sans"]},"fontSize":{"label-sm":["13px",{"lineHeight":"18px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"500"}],"body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.01em","fontWeight":"600"}],"display-lg":["40px",{"lineHeight":"52px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}]}}}}</script>
+
+<!-- Google Fonts preconnect -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- Google Fonts: 图标字体 Material Symbols + 正文字体 Noto Serif / Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased">
+
+<!-- ============================== -->
+<!-- 顶部导航栏（固定定位）           -->
+<!-- ============================== -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_2px_24px_rgba(0,0,0,0.02)] transition-all duration-500">
+<div class="h-20 max-w-[1200px] mx-auto px-margin-desktop flex items-center justify-between">
+
+  <!-- Logo + 品牌名称 -->
+  <div class="flex items-center gap-2 cursor-pointer group">
+    <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center transition-transform duration-500 group-hover:rotate-180">
+      <span class="material-symbols-outlined text-on-primary text-[18px]">qr_code_2</span>
+    </div>
+    <span class="font-headline-md text-headline-md tracking-widest text-primary">灵感之源 AI</span>
+  </div>
+
+  <!-- 桌面端导航链接：旅程（当前）、发现、足迹、我的 -->
+  <nav class="hidden md:flex items-center gap-lg" data-active-classes="text-primary font-semibold">
+    <a aria-current="page" class="transition-colors duration-300 text-primary font-semibold hover:opacity-70" data-path="journey" href="#">旅程</a>
+    <a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" data-path="explore" href="#">发现</a>
+    <a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" data-path="footprints" href="#">足迹</a>
+    <a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" data-path="profile" href="#">我的</a>
+  </nav>
+
+  <!-- 右侧功能图标：搜索按钮 + 用户头像 -->
+  <div class="flex items-center gap-md">
+    <button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-all hover:scale-110">
+      <span class="material-symbols-outlined">search</span>
+    </button>
+    <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95">
+      <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+    </div>
+  </div>
+
+</div>
+</header>
+
+<!-- ============================== -->
+<!-- 主体内容区                      -->
+<!-- ============================== -->
+<main class="w-full pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+
+  <!-- ============================ -->
+  <!-- 顶部装饰区：全宽大图 Banner    -->
+  <!-- ============================ -->
+  <div class="relative w-full h-[320px] -mt-20 overflow-hidden">
+
+    <!-- 背景大图（景德镇清晨风景），hover 时缓慢放大实现视差效果 -->
+    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] ease-out hover:scale-110" alt="A serene landscape of Jingdezhen at dawn, soft morning mist rolling over ancient tile roofs and pine trees, minimalist Zen aesthetic, muted earthy tones with touches of ink wash grey, 8k resolution, cinematic lighting, peaceful atmosphere." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDRUKiRP0YPtHJ9VGYy19V4ipICsISclW0PWj0iigFNcNrrhtCYw2_Ugkkb4bgiAE_jq7PVTd5-3JyLDznqOiVD-geX-ZQyfUzPTDHbwVLRh_1sQVn5HlWfwXl1Tl9qfmR0J2gqM6Htxs-3y8xAu_YVm0cr6mUCl-oPSJazSuaQJ2ngdmOYNMtA99HLFzadoqGXTimJ5Kxu7XgxjB98qINOC-_TpGf5YKC0aQv-2J7EVjs5bUdetQvgYKjmrF23QJ81nw-N528I')"></div>
+
+    <!-- 渐变遮罩：从底部 surface 色向上渐变，保证文字可读 -->
+    <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+
+    <!-- Banner 底部文字叠加层 -->
+    <div class="absolute bottom-0 left-0 w-full px-margin-desktop pb-lg flex flex-col gap-sm">
+
+      <!-- 标签行：灵感之源 · 定制旅程 -->
+      <div class="flex items-center gap-base reveal-fade">
+        <span class="w-12 h-[1px] bg-primary"></span>
+        <span class="font-label-sm text-label-sm text-primary tracking-[0.2em] uppercase">灵感之源 · 定制旅程</span>
+      </div>
+
+      <!-- 页面主标题 -->
+      <h1 class="font-display-lg text-display-lg text-primary reveal-fade-up">景德镇：侘寂美学与泥土的呼吸</h1>
+
+      <!-- 行程标签：时长 / 风格 / 主题 -->
+      <div class="flex gap-md mt-sm reveal-fade-up" style="transition-delay: 200ms;">
+        <span class="font-label-sm text-label-sm bg-surface-container-highest px-md py-xs rounded-full text-on-surface hover:bg-primary hover:text-on-primary transition-colors cursor-default">3天2夜</span>
+        <span class="font-label-sm text-label-sm bg-surface-container-highest px-md py-xs rounded-full text-on-surface hover:bg-primary hover:text-on-primary transition-colors cursor-default">禅意探索</span>
+        <span class="font-label-sm text-label-sm bg-surface-container-highest px-md py-xs rounded-full text-on-surface hover:bg-primary hover:text-on-primary transition-colors cursor-default">艺术朝圣</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================ -->
+  <!-- 内容容器：侧边栏 + 时间线      -->
+  <!-- ============================ -->
+  <div class="max-w-[1200px] mx-auto w-full px-margin-desktop py-xl">
+  <div class="flex gap-xl items-start">
+
+    <!-- ========================== -->
+    <!-- 左侧粘性侧边栏               -->
+    <!-- ========================== -->
+    <aside class="w-64 sticky top-32 flex flex-col gap-lg">
+
+      <!-- 三日行程切换按钮组 -->
+      <div class="flex flex-col gap-sm">
+        <div class="font-label-sm text-label-sm text-on-surface-variant mb-base tracking-widest reveal-fade">行程日程</div>
+
+        <!-- DAY 01：泥土的觉醒（默认激活状态） -->
+        <button class="day-tab group flex items-center justify-between p-md rounded-xl bg-primary text-on-primary transition-all duration-500 shadow-xl reveal-fade-right" data-day="1" style="transition-delay: 100ms;">
+          <div class="flex flex-col items-start">
+            <span class="font-label-sm text-label-sm opacity-70">DAY 01</span>
+            <span class="font-headline-md text-headline-md">泥土的觉醒</span>
+          </div>
+          <span class="material-symbols-outlined text-on-primary transition-all duration-300 group-hover:translate-x-1">arrow_forward_ios</span>
+        </button>
+
+        <!-- DAY 02：火与釉之诗 -->
+        <button class="day-tab group flex items-center justify-between p-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all duration-500 reveal-fade-right" data-day="2" style="transition-delay: 200ms;">
+          <div class="flex flex-col items-start">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">DAY 02</span>
+            <span class="font-headline-md text-headline-md">火与釉之诗</span>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">arrow_forward_ios</span>
+        </button>
+
+        <!-- DAY 03：万物归于静 -->
+        <button class="day-tab group flex items-center justify-between p-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all duration-500 reveal-fade-right" data-day="3" style="transition-delay: 300ms;">
+          <div class="flex flex-col items-start">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">DAY 03</span>
+            <span class="font-headline-md text-headline-md">万物归于静</span>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">arrow_forward_ios</span>
+        </button>
+      </div>
+
+      <!-- AI 贴心提示卡片（天气/建议） -->
+      <div class="p-lg rounded-xl bg-surface-container-low flex flex-col gap-md reveal-fade-up" style="transition-delay: 500ms;">
+        <div class="font-label-sm text-label-sm text-on-surface-variant tracking-widest flex items-center gap-2">
+          <span class="material-symbols-outlined text-[16px] animate-bounce">tips_and_updates</span>
+          AI 贴心提示
+        </div>
+        <p class="font-body-md text-body-md text-on-surface leading-relaxed">
+                    今日行程偏重步行体验，建议穿着舒适的棉麻布鞋。山区早晚温差较大，请携带轻便外衣。
+                  </p>
+        <div class="flex items-center gap-sm text-surface-tint">
+          <span class="material-symbols-outlined text-[18px]">wb_sunny</span>
+          <span class="font-label-sm text-label-sm">22°C · 晴朗</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ========================== -->
+    <!-- 右侧主时间线内容区            -->
+    <!-- ========================== -->
+    <main class="flex-1 flex flex-col gap-xl">
+
+      <!-- ====== 时间线项 1：上午 — 侘寂古窑 ====== -->
+      <section class="group relative flex gap-lg reveal-timeline">
+
+        <!-- 时间线左侧：图标圆点 + 连接线 -->
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all duration-500 shadow-md group-hover:scale-110">
+            <span class="material-symbols-outlined transition-transform group-hover:rotate-12">wb_twilight</span>
+          </div>
+          <!-- 连接线（初始缩起，滚动触发后展开） -->
+          <div class="w-[2px] flex-1 bg-surface-container-highest my-base origin-top transition-transform duration-1000 scale-y-0" id="line-1"></div>
+        </div>
+
+        <!-- 时间线右侧：内容卡片 -->
+        <div class="flex-1 pb-xl">
+          <div class="flex flex-col gap-md">
+            <!-- 标题行：时间 / 地点名称 / 标签 -->
+            <div class="flex justify-between items-end">
+              <div>
+                <span class="font-label-sm text-label-sm text-surface-tint tracking-widest uppercase">09:30 - 上午</span>
+                <h3 class="font-display-lg text-[32px] text-primary mt-xs">侘寂古窑：泥土的静谧时光</h3>
+              </div>
+              <div class="flex gap-xs">
+                <span class="px-sm py-1 bg-surface-container-high rounded text-on-surface-variant font-label-sm text-[11px] hover:bg-secondary-container transition-colors cursor-default">手工体验</span>
+                <span class="px-sm py-1 bg-surface-container-high rounded text-on-surface-variant font-label-sm text-[11px] hover:bg-secondary-container transition-colors cursor-default">传统工艺</span>
+              </div>
+            </div>
+
+            <!-- 配图区域（16:9 比例），hover 时图片放大 + 渐变遮罩淡入 -->
+            <div class="relative overflow-hidden rounded-xl aspect-[16/9] shadow-xl group/img">
+              <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[1500ms] group-hover/img:scale-110" alt="A close up of hands shaping clay on a potter's wheel in a sun-drenched traditional workshop. Soft focus on background showing stacked unglazed porcelain vessels. Warm natural lighting with visible dust motes in the air, high contrast, rustic Japanese Wabi-sabi style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCM7rnDJs_w9lmoWH7tOMss8h04u6a9tWJV7TWgNULzpRLEXZSb9HO8XFwd4nvnwDsmIuquYS6zJFiojRNL_fDFN9vEaI1fm4UZDL4y6h2pJmUmqSrvUODBh_Ah8UdZ6DzF73bvGFxLqknthp8UxByhuFyMu4dsa7pvN_Fo3AmYS7sJ9WZt9_MJNUHpHVK8MaEJME83pwtqqQMLMujKHJlH9oYI6MamNE5Ygm1R-Bia23PFhxLBDxWV0UHcTRjCVwWTzTAjgEB0')"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity duration-700"></div>
+            </div>
+
+            <!-- 描述文字 -->
+            <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-[640px]">
+                            在古窑的清晨，你可以亲手触摸那份来自大地深处的微凉。这里不追求完美的器形，而是鼓励你去感受指尖下泥土的质感与呼吸。在安静的工作坊里，只有拉坯机的旋转声。
+                          </p>
+
+            <!-- 地点 + 建议时长信息 -->
+            <div class="flex items-center gap-lg mt-base">
+              <div class="flex items-center gap-xs text-on-surface-variant group/loc cursor-pointer">
+                <span class="material-symbols-outlined text-[18px] group-hover/loc:text-primary transition-colors">location_on</span>
+                <span class="font-label-sm text-label-sm group-hover/loc:text-primary transition-colors">三宝村古窑遗址</span>
+              </div>
+              <div class="flex items-center gap-xs text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">schedule</span>
+                <span class="font-label-sm text-label-sm">建议游玩 2.5 小时</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== 时间线项 2：午间 — 隐庐素食 ====== -->
+      <section class="group relative flex gap-lg reveal-timeline">
+
+        <!-- 时间线图标（餐厅图标） -->
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all duration-500 shadow-md group-hover:scale-110">
+            <span class="material-symbols-outlined transition-transform group-hover:rotate-12">restaurant</span>
+          </div>
+          <div class="w-[2px] flex-1 bg-surface-container-highest my-base origin-top transition-transform duration-1000 scale-y-0" id="line-2"></div>
+        </div>
+
+        <div class="flex-1 pb-xl">
+          <div class="flex flex-col gap-md">
+            <div class="flex justify-between items-end">
+              <div>
+                <span class="font-label-sm text-label-sm text-surface-tint tracking-widest uppercase">12:30 - 午间</span>
+                <h3 class="font-display-lg text-[32px] text-primary mt-xs">隐庐素食：禅意里的味蕾觉醒</h3>
+              </div>
+            </div>
+
+            <!-- 双图网格：菜品特写 + 庭院环境（2列等高布局） -->
+            <div class="grid grid-cols-2 gap-md h-[300px]">
+              <div class="relative overflow-hidden rounded-xl shadow-lg group/img">
+                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[1500ms] group-hover/img:scale-110" alt="An exquisite vegetarian dish served on a dark, handmade ceramic plate. The food is arranged artistically with microgreens and colorful root vegetables. Minimalist restaurant interior background with soft backlighting. Fine dining aesthetic, highly detailed texture." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD09c1VOGQzSfNGUznfStw_2NHQePid9HlsAedHfMSGlimozHsDV4g7YokxLlbLSFxtkb7YsnkskwmhKzEIT7mLPNIjlHjMASUtUO0-TuL-sTrwAE28NeOVVvRVulRyvdbVbXgF6Ge_T37WUs9nPt-8PEVqA7hshHcWLfK5yOUkORUXRqW9_ry5fDdEl5i442YdwrsvRdIoDZWQ-juPRn9xESbgYc06WoOhK1AV3YX8fcUQZWuwIilSsIuDk-XaQ-R_-iawWQDV')"></div>
+              </div>
+              <div class="relative overflow-hidden rounded-xl shadow-lg group/img">
+                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[1500ms] group-hover/img:scale-110" alt="A tranquil courtyard of a Zen restaurant with bamboo shadows dancing on a white wall. A stone water basin with a single floating camellia. Afternoon sun casting long, soft shadows. Peaceful and elegant atmosphere." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDflPYOohUzBpOS0_N4tpke8_KMKNJl5g96PiHJoi7uNE3gLMlw6FHYf-b2PWh8yeuXEgy4xRkT3EGCEIIWK80uuC1H6sdvKjM4b4KkLtpSd8OzJjZV9GQcu6qIz0oXdzy1MA-yw53uhOoTxoEIv7bSpY5jQT40kwtXifZ5txMNMoTUhJszXg7NNA3TneR2x0lhspdELNwo3xmcjFKLjSqucqPGDrvRwT5E9bsBDD88S_dtdd2iVc_VSpKuTxsvxH0yUBPj5aZA')"></div>
+              </div>
+            </div>
+
+            <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-[640px]">
+                            隐于竹林之中的素食馆。主厨坚持使用当季最新鲜的食材，每一道菜品都像是一件艺术品。在光影交织的空间里，体验一场感官的"冥想"。
+                          </p>
+
+            <!-- AI 预订信息卡片（带预订状态 + 查看订单按钮） -->
+            <div class="bg-surface-container-low p-md rounded-xl flex items-center justify-between group/booking transition-all hover:bg-surface-container hover:shadow-md">
+              <div class="flex items-center gap-md">
+                <span class="material-symbols-outlined text-primary group-hover/booking:scale-110 transition-transform">bookmark</span>
+                <span class="font-body-md text-body-md font-semibold">AI 已为您预订：景观位（12:45）</span>
+              </div>
+              <button class="px-md py-xs font-label-sm text-label-sm bg-primary text-on-primary rounded-full transition-all hover:shadow-lg active:scale-95">查看订单</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== 时间线项 3：下午 — 雕塑瓷厂 ====== -->
+      <section class="group relative flex gap-lg reveal-timeline">
+
+        <!-- 时间线图标（画笔图标） -->
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all duration-500 shadow-md group-hover:scale-110">
+            <span class="material-symbols-outlined transition-transform group-hover:rotate-12">brush</span>
+          </div>
+          <!-- 连接线末端渐隐（h-20 + to-transparent） -->
+          <div class="w-[2px] h-20 bg-gradient-to-b from-surface-container-highest to-transparent my-base origin-top transition-transform duration-1000 scale-y-0" id="line-3"></div>
+        </div>
+
+        <div class="flex-1">
+          <div class="flex flex-col gap-md">
+            <div class="flex justify-between items-end">
+              <div>
+                <span class="font-label-sm text-label-sm text-surface-tint tracking-widest uppercase">15:00 - 下午</span>
+                <h3 class="font-display-lg text-[32px] text-primary mt-xs">雕塑瓷厂：工业遗迹中的艺术重生</h3>
+              </div>
+              <div class="flex gap-xs">
+                <span class="px-sm py-1 bg-surface-container-high rounded text-on-surface-variant font-label-sm text-[11px] hover:bg-secondary-container transition-colors cursor-default">潮流艺术</span>
+                <span class="px-sm py-1 bg-surface-container-high rounded text-on-surface-variant font-label-sm text-[11px] hover:bg-secondary-container transition-colors cursor-default">市集探店</span>
+              </div>
+            </div>
+
+            <!-- 全景宽图（21:9 比例），hover 时放大 + 左侧渐变色遮罩 -->
+            <div class="relative overflow-hidden rounded-xl aspect-[21/9] shadow-xl group/img">
+              <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[1500ms] group-hover/img:scale-110" alt="A panoramic view of an old industrial factory turned into an art complex. Red brick chimneys against a clear blue sky, modern glass galleries integrated into old structures. People walking through a lively outdoor craft market. Vibrant creative energy, late afternoon golden hour lighting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDBehNJQe6FY0rR96AoT3ekVdZooLbSX2zfp2C7TuNsNp-OyY3cVSAJ_C1PzO4x44fc1oCix-GlSqr6S_-wUnIS3_z_8-1Os_rWzIcl9QHRdkJrvuxh5uJCbJfUKWPZfz58hIX49A7gcqUi7cyBeHZT3-bo2IoT0QcMAc_GNfyVp1P2S5QRy7gZNlIMrDjEDajDYjSUBWL9ijpvvw_RwMad3hG1lUl_pMZo1eQfJbo6smc9RYlJctaNCvf2lYbkANXpo7e4Muk1')"></div>
+              <div class="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+            </div>
+
+            <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-[640px]">
+                            这里是年轻艺术家的聚集地。旧厂房被改造为先锋画廊和创意店铺。在琳琅满目的瓷器市集中，去寻找那一件能与你产生共鸣的独一无二的作品。
+                          </p>
+
+            <!-- 交互地图占位区域（点阵背景），点击可加载地图 -->
+            <div class="w-full h-48 rounded-xl bg-surface-container overflow-hidden group/map cursor-crosshair transition-all hover:shadow-inner" data-location="景德镇雕塑瓷厂" style="">
+              <div class="w-full h-full bg-[radial-gradient(#ccc_1px,transparent_1px)] [background-size:20px_20px] flex items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity">
+                <span class="font-label-sm text-on-surface-variant">点击加载交互地图</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+  </div>
+
+  <!-- ============================ -->
+  <!-- 浮动操作按钮（固定在右下角）     -->
+  <!-- ============================ -->
+  <div class="fixed bottom-margin-desktop right-margin-desktop flex flex-col gap-md items-end z-40">
+
+    <!-- 分享按钮 -->
+    <button class="w-14 h-14 rounded-full bg-surface-container-highest text-primary flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all group">
+      <span class="material-symbols-outlined group-hover:rotate-45 transition-transform duration-300">share</span>
+    </button>
+
+    <!-- AI 调整行程主按钮（带脉冲动画） -->
+    <button class="flex items-center gap-md px-lg py-md rounded-full bg-primary text-on-primary shadow-2xl hover:translate-y-[-4px] hover:shadow-primary/20 transition-all hover-pulse group">
+      <span class="material-symbols-outlined group-hover:rotate-90 transition-transform duration-500">auto_fix_high</span>
+      <span class="font-label-sm text-label-sm">AI 调整行程</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- ============================== -->
+<!-- JavaScript：交互逻辑             -->
+<!-- ============================== -->
+<script>
+
+  // ================================================================
+  // 1. 日次标签切换：点击 DAY 按钮时切换激活态样式
+  // ================================================================
+  const tabs = document.querySelectorAll('.day-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+
+      // 1a. 重置所有标签为未激活样式（surface 背景 + 灰色文字 + 隐藏箭头）
+      tabs.forEach(t => {
+        t.classList.remove('bg-primary', 'text-on-primary', 'shadow-xl');
+        t.classList.add('bg-surface-container', 'text-on-surface');
+        t.querySelector('span:first-child').classList.remove('opacity-70');
+        t.querySelector('span:first-child').classList.add('text-on-surface-variant');
+        const icon = t.querySelector('.material-symbols-outlined');
+        icon.classList.replace('text-on-primary', 'text-on-surface-variant');
+        icon.classList.add('opacity-0');
+      });
+
+      // 1b. 当前点击的标签设为激活态（primary 背景 + 白色文字 + 阴影 + 显示箭头）
+      tab.classList.add('bg-primary', 'text-on-primary', 'shadow-xl');
+      tab.classList.remove('bg-surface-container', 'text-on-surface');
+      tab.querySelector('span:first-child').classList.add('opacity-70');
+      tab.querySelector('span:first-child').classList.remove('text-on-surface-variant');
+      const activeIcon = tab.querySelector('.material-symbols-outlined');
+      activeIcon.classList.replace('text-on-surface-variant', 'text-on-primary');
+      activeIcon.classList.remove('opacity-0');
+    });
+  });
+
+  // ================================================================
+  // 2. Intersection Observer：滚动进入视口时的逐项显现动画
+  // ================================================================
+
+  // 2a. Observer 配置：元素进入视口 15% 或距底部 50px 以内时触发
+  const observerOptions = {
+    threshold: 0.15,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  // 2b. 创建观察器实例
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+      if (entry.isIntersecting) {
+
+        // 添加 .revealed class 触发可见（opacity: 1, transform: translate(0)）
+        entry.target.classList.add('revealed');
+
+        // 如果是时间线区块（reveal-timeline），额外展开内部的连接线
+        if (entry.target.classList.contains('reveal-timeline')) {
+          const line = entry.target.querySelector('[id^="line-"]');
+          if (line) {
+            setTimeout(() => {
+              line.classList.remove('scale-y-0');
+              line.classList.add('scale-y-100');
+            }, 400); // 延迟 400ms 后展开，营造递进感
+          }
+        }
+
+        // 触发一次后取消观察，避免重复执行
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // 2c. 收集所有含 reveal- 类名的元素，初始化透明/位移状态，开始观察
+  const revealElements = document.querySelectorAll('.reveal-fade, .reveal-fade-up, .reveal-fade-right, .reveal-timeline');
+  revealElements.forEach(el => {
+    el.style.opacity = '0';
+    el.style.transition = 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)';
+
+    // 根据类名设定不同的初始位移方向
+    if (el.classList.contains('reveal-fade-up')) el.style.transform = 'translateY(30px)';   // 从下往上
+    if (el.classList.contains('reveal-fade-right')) el.style.transform = 'translateX(-30px)'; // 从左往右
+    if (el.classList.contains('reveal-timeline')) el.style.transform = 'translateY(20px)';    // 从下往上（小幅）
+
+    revealObserver.observe(el);
+  });
+
+  // ================================================================
+  // 3. 动态注入 .revealed 样式规则（避免在 CSS 中声明重复样式）
+  // ================================================================
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .revealed { opacity: 1 !important; transform: translate(0) !important; }
+  `;
+  document.head.appendChild(style);
+
+</script></main>
+
+<!-- ============================== -->
+<!-- 页脚：版权信息 + 链接            -->
+<!-- ============================== -->
+<footer class="w-full bg-surface-container-low py-xl mt-xl border-t border-outline-variant/10">
+<div class="max-w-[1200px] mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md text-on-surface-variant font-label-sm uppercase tracking-widest">
+  <span>© 二零二四 灵感之源 AI</span>
+  <div class="flex gap-lg">
+    <span class="cursor-pointer hover:text-primary transition-colors">关于我们</span>
+    <span class="cursor-pointer hover:text-primary transition-colors">隐私政策</span>
+    <span class="cursor-pointer hover:text-primary transition-colors">联系我们</span>
+  </div>
+  <div class="flex gap-lg">
+    <a class="cursor-pointer hover:text-primary transition-colors" href="../01-assessment-result/index.html">测评结果</a>
+    <a class="cursor-pointer hover:text-primary transition-colors" href="../02-emotion-review/index.html">情绪回顾</a>
+    <a class="cursor-pointer hover:text-primary transition-colors" href="../03-aesthetic-quiz/index.html">美学测评</a>
+    <a class="cursor-pointer hover:text-primary transition-colors" href="../04-travel-dashboard/index.html">旅行看板</a>
+  </div>
+  </div>
+</div>
+</footer>
+</body></html>

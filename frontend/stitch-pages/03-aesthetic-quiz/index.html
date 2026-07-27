@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     页面: 灵感之源 AI — 灵魂美学测评 (Aesthetic Quiz)
+     描述: 一个沉浸式的审美风格测评交互页面，包含导航栏、
+           视觉展示区、选择题交互区和进度指示。
+     ============================================================ -->
+
+<html lang="zh-CN"><head>
+<!-- ========== 元数据 ========== -->
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>灵感之源 AI - 灵魂美学测评</title>
+<meta content="沉浸式审美风格测评 - 发现你的审美基因与灵魂质感" name="description"/>
+
+<!-- ========== 外部资源引入 ========== -->
+<!-- Tailwind CSS (含 forms 和 container-queries 插件) -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts 预连接优化 -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- Material Symbols 图标字体 -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Noto Serif SC (衬线中文字体) + Plus Jakarta Sans (无衬线西文字体) -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+
+<!-- ========== Tailwind 自定义配置 ========== -->
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "var(--on-background)",
+                        "on-secondary-container": "#63655e",
+                        "background": "var(--background)",
+                        "surface-container-highest": "var(--surface-container-highest)",
+                        "surface-container": "var(--surface-container)",
+                        "secondary": "#5d5f58",
+                        "on-secondary-fixed-variant": "#464741",
+                        "surface-dim": "var(--surface-dim)",
+                        "tertiary-container": "#1c1b1a",
+                        "surface-container-low": "var(--surface-container-low)",
+                        "on-primary-fixed-variant": "#474746",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "var(--inverse-surface)",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "surface-bright": "var(--surface-bright)",
+                        "primary-fixed": "#e5e2e1",
+                        "primary": "var(--primary)",
+                        "surface-tint": "#5f5e5e",
+                        "outline-variant": "var(--outline-variant)",
+                        "surface": "var(--surface)",
+                        "tertiary-fixed": "#e6e2df",
+                        "surface-container-lowest": "var(--surface-container-lowest)",
+                        "on-primary": "var(--on-primary)",
+                        "surface-container-high": "var(--surface-container-high)",
+                        "secondary-fixed-dim": "#c6c7bf",
+                        "secondary-container": "#e3e3da",
+                        "inverse-primary": "var(--inverse-primary)",
+                        "on-error-container": "#93000a",
+                        "primary-container": "var(--primary-container)",
+                        "on-tertiary-container": "#868382",
+                        "on-surface": "var(--on-surface)",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#000000",
+                        "on-primary-fixed": "#1c1b1b",
+                        "on-surface-variant": "var(--on-surface-variant)",
+                        "on-secondary-fixed": "#1a1c17",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#e3e3da",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-primary-container": "var(--on-primary-container)",
+                        "outline": "var(--outline)",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#cac6c4",
+                        "surface-variant": "#e5e2e1",
+                        "inverse-on-surface": "var(--inverse-on-surface)"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"],
+                        "serif": ["Noto Serif SC", "serif"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Noto Serif SC"],
+                        "headline-md": ["Noto Serif SC"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+
+<!-- ========== 自定义样式 ========== -->
+<style>
+        /* 全局字体设定 */
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif; }
+        /* 衬线字体工具类 (用于标题/展示文字) */
+        .serif-font { font-family: 'Noto Serif SC', serif; }
+        /* Material Symbols 图标字体的可变轴设置 */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* 选项卡片悬停时显示勾选图标 */
+        .option-card:hover .check-icon { opacity: 1; }
+        /* 统一过渡动画 (贝塞尔曲线缓动) */
+        .transition-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* 深色模式自定义属性 */
+        :root{--background:#fdf8f8;--on-background:#1c1b1b;--surface:#fdf8f8;--surface-dim:#ddd9d8;--surface-bright:#fdf8f8;--surface-container-lowest:#ffffff;--surface-container-low:#f7f3f2;--surface-container:#f1edec;--surface-container-high:#ebe7e6;--surface-container-highest:#e5e2e1;--on-surface:#1c1b1b;--on-surface-variant:#444748;--primary:#000000;--on-primary:#ffffff;--primary-container:#1c1b1b;--on-primary-container:#858383;--inverse-surface:#313030;--inverse-on-surface:#f4f0ef;--inverse-primary:#c8c6c5;--outline:#747878;--outline-variant:#c4c7c7;}
+        @media(prefers-color-scheme:dark){:root{--background:#1c1b1b;--on-background:#e5e2e1;--surface:#1c1b1b;--surface-dim:#141313;--surface-bright:#232222;--surface-container-lowest:#111111;--surface-container-low:#1e1d1d;--surface-container:#222121;--surface-container-high:#2b2a2a;--surface-container-highest:#363434;--on-surface:#e5e2e1;--on-surface-variant:#c4c7c7;--primary:#ffffff;--on-primary:#000000;--primary-container:#e5e2e1;--on-primary-container:#3b3a3a;--inverse-surface:#e5e2e1;--inverse-on-surface:#1c1b1b;--inverse-primary:#000000;--outline:#8e9292;--outline-variant:#444748;}}
+    </style>
+</head>
+
+<!-- ========== 页面主体 ========== -->
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+
+<!-- ==================== 顶部导航栏 ==================== -->
+<!-- Shared TopNavBar (Included per Relevance Test for Destination/Browsing) -->
+<div class="w-full flex flex-col bg-surface-container-lowest border-b border-surface-container-highest">
+<header class="max-w-[1200px] mx-auto w-full flex items-center justify-between px-6 py-4">
+    <!-- 左侧: Logo + 品牌名称 -->
+    <div class="flex items-center gap-4 text-primary">
+        <div class="size-6">
+            <!-- Logo SVG: 抽象几何图形 (4个嵌套方块) -->
+            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+            </svg>
+        </div>
+        <h2 class="text-on-background text-xl font-bold leading-tight tracking-tight serif-font">灵感之源 AI</h2>
+    </div>
+    <!-- 右侧: 导航菜单 + 用户头像 -->
+    <div class="flex items-center gap-10">
+        <nav class="flex items-center gap-8">
+            <a class="text-on-surface text-sm font-medium hover:text-primary transition-colors" href="#">测评</a>
+            <a class="text-on-surface text-sm font-medium hover:text-primary transition-colors" href="#">灵感库</a>
+            <a class="text-on-surface text-sm font-medium hover:text-primary transition-colors" href="#">审美档案</a>
+            <a class="text-on-surface text-sm font-medium hover:text-primary transition-colors" href="#">关于我们</a>
+        </nav>
+        <!-- 用户头像按钮 -->
+        <button class="flex items-center justify-center rounded-full h-10 w-10 bg-surface-container hover:bg-surface-container-high transition-colors">
+            <span class="material-symbols-outlined text-on-surface" style="font-variation-settings: 'FILL' 0;">person</span>
+        </button>
+    </div>
+</header>
+</div>
+
+<!-- ==================== 主体内容区域 ==================== -->
+<main class="flex-1 flex items-center justify-center p-6 md:p-12">
+    <!-- 内容容器: 左右两栏布局 (移动端堆叠, 桌面端并排) -->
+    <div class="max-w-[1100px] w-full bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest overflow-hidden flex flex-col md:flex-row min-h-[640px]">
+
+        <!-- ===== 左侧: 视觉灵感展示区 ===== -->
+        <div class="w-full md:w-1/2 relative group">
+            <!-- 半透明遮罩 (增强文字可读性) -->
+            <div class="absolute inset-0 bg-black/5 z-10"></div>
+            <!-- 背景图片 (侘寂风陶瓷纹理, 悬停时缓慢放大) -->
+            <div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" alt="A highly detailed close-up shot of a handcrafted Japanese ceramic bowl with a rich, crackled glaze and organic, wabi-sabi textures. The lighting is soft and directional, highlighting the subtle earthy tones of ochre and charcoal. The composition is minimalist and serene, emphasizing the tactile quality of the ceramic surface against a clean, neutral background, embodying a timeless aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBgWeJk8mmlzBkb7koQRQrtczn4vb-4VHI6fHdvv1PRTuFoD_WrDE_6U6sqGaBEoHVM0bFPWFc5AUZU2jx-rFp72wNMAsSdujDQtMe7j-XmM10ZVMLwWcQhEF76VY8RFJ3MlbiWAEF8t9Vpz2i7kWDC5G26dUnUjo1scsrNtlygeKEyKTYQQsQ_Ah4HGtqGLCTxARYILoJ88p_tENd-6fhKa1kryxSt8UK9j4XVC1QTgRldriV2irXE1Vr71v0754D_rDN6O256')"></div>
+            <!-- 左下角: 图片描述文字 (叠加在图片上方) -->
+            <div class="absolute bottom-8 left-8 z-20 text-white drop-shadow-md">
+                <span class="text-xs tracking-widest uppercase opacity-80 mb-2 block">AESTHETIC NO. 29</span>
+                <h3 class="serif-font text-2xl font-light">侘寂之美 · 质感肌理</h3>
+            </div>
+        </div>
+
+        <!-- ===== 右侧: 交互答题区 ===== -->
+        <div class="w-full md:w-1/2 flex flex-col p-8 md:p-14 justify-between bg-surface-container-lowest">
+
+            <!-- ---- 进度头部 ---- -->
+            <div class="mb-8">
+                <!-- 返回链接 + 进度标识 -->
+                <div class="flex items-center gap-3 mb-2">
+                    <a class="text-on-surface-variant hover:text-primary flex items-center gap-1" href="#">
+                        <span class="material-symbols-outlined text-sm">arrow_back</span>
+                        <span class="text-xs font-medium">返回</span>
+                    </a>
+                    <span class="text-surface-container-highest">|</span>
+                    <span class="text-xs font-medium tracking-wider text-on-surface-variant">灵魂美学测评 · 04 / 12</span>
+                </div>
+                <!-- 进度条 -->
+                <div class="w-full h-1 bg-surface-container rounded-full overflow-hidden">
+                    <div class="h-full bg-primary w-[65%] transition-all duration-500"></div>
+                </div>
+                <!-- 进度文字 (65% + 提示文案) -->
+                <div class="flex justify-between mt-2">
+                    <span class="text-[10px] text-on-surface-variant font-semibold tracking-tighter">PROGRESS: 65%</span>
+                    <span class="text-[10px] text-on-surface-variant font-semibold tracking-tighter">发现你的审美基因</span>
+                </div>
+            </div>
+
+            <!-- ---- 题目文字 ---- -->
+            <div class="mb-10">
+                <h1 class="serif-font text-3xl md:text-4xl font-bold text-on-background mb-4 leading-tight">遇见未知的自己</h1>
+                <p class="text-on-surface-variant text-lg leading-relaxed">此时此刻，哪种材质的触感最能让你感受到内心的宁静？</p>
+            </div>
+
+            <!-- ---- 选项列表 (2x2 网格布局) ---- -->
+            <div class="grid grid-cols-2 gap-4 flex-1">
+
+                <!-- 选项 1: 粗粝陶土 -->
+                <button class="option-card group relative flex flex-col items-center justify-center p-6 border border-surface-container-highest rounded-lg hover:border-primary hover:bg-surface-container-low transition-all text-center">
+                    <div class="size-16 rounded-full bg-[#E5E1DA] mb-4 flex items-center justify-center shadow-inner overflow-hidden border border-black/5">
+                        <!-- 纹理图案: 圆点阵 (模拟陶土粗糙感) -->
+                        <div class="w-full h-full opacity-40 mix-blend-multiply" style="background-image: radial-gradient(circle at 2px 2px, #000 1px, transparent 0); background-size: 8px 8px;"></div>
+                    </div>
+                    <span class="text-sm font-bold text-on-background">粗粝陶土</span>
+                    <span class="text-xs text-on-surface-variant mt-1">自然、真实、厚重</span>
+                    <!-- 选中状态勾选图标 (默认隐藏, 选中后显示) -->
+                    <div class="check-icon absolute top-3 right-3 opacity-0 transition-opacity">
+                        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                </button>
+
+                <!-- 选项 2: 冷冽大理石 -->
+                <button class="option-card group relative flex flex-col items-center justify-center p-6 border border-surface-container-highest rounded-lg hover:border-primary hover:bg-surface-container-low transition-all text-center">
+                    <div class="size-16 rounded-full bg-[#F5F5F5] mb-4 flex items-center justify-center shadow-inner overflow-hidden border border-black/5">
+                        <!-- 纹理图案: 白色渐变 (模拟大理石光泽) -->
+                        <div class="w-full h-full bg-gradient-to-tr from-white/80 to-transparent"></div>
+                    </div>
+                    <span class="text-sm font-bold text-on-background">冷冽大理石</span>
+                    <span class="text-xs text-on-surface-variant mt-1">理智、高级、永恒</span>
+                    <div class="check-icon absolute top-3 right-3 opacity-0 transition-opacity">
+                        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                </button>
+
+                <!-- 选项 3: 温暖原木 -->
+                <button class="option-card group relative flex flex-col items-center justify-center p-6 border border-surface-container-highest rounded-lg hover:border-primary hover:bg-surface-container-low transition-all text-center">
+                    <div class="size-16 rounded-full bg-[#D7C0AE] mb-4 flex items-center justify-center shadow-inner overflow-hidden border border-black/5">
+                        <!-- 纹理图案: 斜线重复 (模拟木纹) -->
+                        <div class="w-full h-full opacity-20" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 0, transparent 4px);"></div>
+                    </div>
+                    <span class="text-sm font-bold text-on-background">温暖原木</span>
+                    <span class="text-xs text-on-surface-variant mt-1">柔和、有机、亲切</span>
+                    <div class="check-icon absolute top-3 right-3 opacity-0 transition-opacity">
+                        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                </button>
+
+                <!-- 选项 4: 复古亚麻 -->
+                <button class="option-card group relative flex flex-col items-center justify-center p-6 border border-surface-container-highest rounded-lg hover:border-primary hover:bg-surface-container-low transition-all text-center">
+                    <div class="size-16 rounded-full bg-[#967E76] mb-4 flex items-center justify-center shadow-inner overflow-hidden border border-black/5">
+                        <!-- 纹理图案: 棋盘格小方块 (模拟亚麻织物纹理) -->
+                        <div class="w-full h-full opacity-30 mix-blend-overlay" style="background-image: linear-gradient(135deg, #fff 25%, transparent 25%), linear-gradient(225deg, #fff 25%, transparent 25%); background-size: 4px 4px;"></div>
+                    </div>
+                    <span class="text-sm font-bold text-on-background">复古亚麻</span>
+                    <span class="text-xs text-on-surface-variant mt-1">透气、质朴、自由</span>
+                    <div class="check-icon absolute top-3 right-3 opacity-0 transition-opacity">
+                        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                </button>
+
+            </div>
+
+            <!-- ---- 底部操作按钮 ---- -->
+            <div class="mt-12 flex items-center justify-between">
+                <!-- 跳过此题 (次要按钮) -->
+                <button class="px-6 py-3 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2">
+                    跳过此题
+                </button>
+                <!-- 下一题 (主要按钮, 实心黑色) -->
+                <button class="px-10 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-on-primary-container transition-all flex items-center gap-2 shadow-md">
+                    下一题
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- ==================== 页脚 ==================== -->
+<footer class="p-8 text-center">
+    <div class="flex items-center justify-center gap-6 mb-2">
+        <a class="text-[10px] tracking-[0.2em] text-on-surface-variant/50 uppercase font-bold hover:text-primary transition-colors" href="../01-assessment-result/index.html">测评结果</a>
+        <a class="text-[10px] tracking-[0.2em] text-on-surface-variant/50 uppercase font-bold hover:text-primary transition-colors" href="../02-emotion-review/index.html">情绪回顾</a>
+        <a class="text-[10px] tracking-[0.2em] text-on-surface-variant/50 uppercase font-bold hover:text-primary transition-colors" href="../04-travel-dashboard/index.html">旅行看板</a>
+        <a class="text-[10px] tracking-[0.2em] text-on-surface-variant/50 uppercase font-bold hover:text-primary transition-colors" href="../05-journey-itinerary/index.html">行程详情</a>
+    </div>
+    <p class="text-[10px] tracking-[0.2em] text-on-surface-variant/50 uppercase font-bold">Soul Journey AI © 2024 • Minimalist Aesthetic Exploration</p>
+</footer>
+
+<!-- ==================== JavaScript 交互逻辑 ==================== -->
+<script>
+    // 简单的点击交互: 切换选项卡片的选中状态
+    // 获取所有 .option-card 元素 (即四个选项按钮)
+    const cards = document.querySelectorAll('.option-card');
+
+    // 为每个选项卡片绑定点击事件
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            // 1) 清除所有卡片的高亮状态
+            cards.forEach(c => {
+                // 移除高亮边框和背景
+                c.classList.remove('border-primary', 'bg-surface-container-low');
+                // 隐藏勾选图标
+                c.querySelector('.check-icon').classList.add('opacity-0');
+                c.querySelector('.check-icon').classList.remove('opacity-100');
+            });
+            // 2) 为被点击的卡片添加高亮状态
+            card.classList.add('border-primary', 'bg-surface-container-low');
+            card.querySelector('.check-icon').classList.remove('opacity-0');
+            card.querySelector('.check-icon').classList.add('opacity-100');
+        });
+    });
+</script>
+
+</body></html>
