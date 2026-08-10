@@ -1,0 +1,93 @@
+<%- include('_head') %>
+
+<div class="page-enter" id="return-app">
+  <div id="return-loading" class="empty-state">
+    <div class="empty-state__icon">⏳</div>
+    <div class="empty-state__text">正在计算你的心灵变化…</div>
+  </div>
+</div>
+
+<script>
+  async function loadReturn() {
+    const res = await fetch('/api/v1/return');
+    if (!res.ok) {
+      document.getElementById('return-loading').innerHTML =
+        '<div class="empty-state__text">请先完成测评</div>';
+      return;
+    }
+    const data = await res.json();
+    renderReturn(data);
+  }
+
+  function renderReturn(data) {
+    document.getElementById('return-app').innerHTML = `
+      <h1 style="text-align: center;">归途评估</h1>
+      <p class="text-muted text-center mb-md">这趟心旅，你的心灵发生了什么变化</p>
+
+      <div class="score-compare fade-in-up">
+        <div class="score-card">
+          <div class="score-card__value">${data.pre_score}</div>
+          <div class="score-card__label">出发前</div>
+          <div class="score-card__tags">
+            ${data.pre_tags.map(t => `<span class="tag tag--primary" style="font-size:0.65rem;">${t}</span>`).join('')}
+          </div>
+        </div>
+
+        <div class="score-arrow">→</div>
+
+        <div class="score-card">
+          <div class="score-card__value" style="color: var(--color-accent);">${data.return_score}</div>
+          <div class="score-card__label">归途后</div>
+          <div class="score-card__tags">
+            ${data.return_tags.map(t => `<span class="tag tag--accent" style="font-size:0.65rem;">${t}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="score-improvement pulse">
+        +${data.improvement} 分
+      </div>
+
+      <div class="return-stats">
+        <div class="return-stat">
+          <div class="return-stat__value">${data.checkin_count}</div>
+          <div class="return-stat__label">打卡场景</div>
+        </div>
+        <div class="return-stat">
+          <div class="return-stat__value">${data.review_count}</div>
+          <div class="return-stat__label">点评数</div>
+        </div>
+        <div class="return-stat">
+          <div class="return-stat__value">${data.positive_count}</div>
+          <div class="return-stat__label">推荐数</div>
+        </div>
+      </div>
+
+      <div class="return-poem fade-in-up" style="animation-delay: 0.5s;">
+        <p style="margin-bottom: 12px;">${data.poetic_summary}</p>
+        <div class="divider"></div>
+        <p class="text-poetic" style="font-size: 1rem;">
+          ${data.profile_name}，<br>
+          旅行不是逃离日常，<br>
+          而是找到那个与你的灵魂共振的地方。
+        </p>
+      </div>
+
+      <div class="mt-lg">
+        <a href="/api/v1/reset" class="btn btn-primary" onclick="resetSession(event)">
+          再启心旅 ↻
+        </a>
+      </div>
+    `;
+  }
+
+  async function resetSession(e) {
+    e.preventDefault();
+    await fetch('/api/v1/reset');
+    window.location.href = '/';
+  }
+
+  loadReturn();
+</script>
+
+<%- include('_foot') %>

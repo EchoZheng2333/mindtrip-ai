@@ -1,0 +1,17 @@
+{
+  "name": "mindtrip-ai",
+  "version": "1.1.0",
+  "description": "心旅 AI - 心理-美学算法评测 × 文旅场景匹配推荐系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "uuid": "^10.0.0"
+  }
+}

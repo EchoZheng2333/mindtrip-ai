@@ -1,0 +1,63 @@
+<%- include('_head') %>
+
+<div class="page-enter">
+  <h1 style="text-align:center;">隐私授权</h1>
+
+  <div class="card--testimonial mt-md">
+    <p style="font-size: 0.85rem; color: var(--color-text-light); line-height: 1.8;">
+      心旅 AI 尊重你的数据主权。<br>
+      你的测评数据和旅行记录仅用于生成本次推荐，<br>
+      不会用于任何商业用途。<br>
+      行程结束后所有数据将被清除。
+    </p>
+  </div>
+
+  <div class="consent-group mt-md">
+    <label class="consent-item" for="consent-required">
+      <input type="checkbox" id="consent-required" name="consent_required">
+      <div>
+        <div class="consent-item__text">
+          <strong>我授权心旅 AI 使用我的测评数据生成推荐</strong>
+        </div>
+        <div class="consent-item__hint">
+          数据将在行程结束后自动清除。（必选）
+        </div>
+      </div>
+    </label>
+
+    <label class="consent-item" for="consent-optional">
+      <input type="checkbox" id="consent-optional" name="consent_optional">
+      <div>
+        <div class="consent-item__text">
+          <strong>我同意在打卡后对场景进行点评</strong>
+        </div>
+        <div class="consent-item__hint">
+          帮助 AI 优化推荐质量。（可选）
+        </div>
+      </div>
+    </label>
+  </div>
+
+  <div class="mt-lg">
+    <button id="confirm-btn" class="btn btn-primary" disabled>
+      确认授权
+    </button>
+  </div>
+</div>
+
+<script>
+  const requiredCheckbox = document.getElementById('consent-required');
+  const confirmBtn = document.getElementById('confirm-btn');
+
+  requiredCheckbox.addEventListener('change', () => {
+    confirmBtn.disabled = !requiredCheckbox.checked;
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    if (requiredCheckbox.checked) {
+      window.location.href = '/quiz';
+    }
+  });
+</script>
+
+<%- include('_foot') %>

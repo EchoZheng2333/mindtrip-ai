@@ -1,0 +1,47 @@
+    </main>
+    <footer class="app-footer">
+      心旅 AI · MindTrip AI v1.1 Demo<br>
+      旅行不是逃离日常，而是找到那个与你的灵魂共振的地方
+    </footer>
+  </div>
+
+<script>
+  // 顶部导航：当前页高亮
+  (function () {
+    var p = location.pathname;
+    var active = '/';
+    if (p.indexOf('/scene') === 0 || p === '/route' || p === '/explore') active = '/explore';
+    else if (p === '/quiz' || p === '/consent') active = '/quiz';
+    else if (p === '/profile' || p === '/return') active = '/profile';
+    var links = document.querySelectorAll('#app-nav a[data-nav-path]');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].getAttribute('data-nav-path') === active) links[i].classList.add('is-active');
+    }
+  })();
+
+  // 全局页面切换淡入淡出（尊重 prefers-reduced-motion）
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // 页面加载：淡入
+    var style = document.createElement('style');
+    style.textContent = '@keyframes wbPageIn { from { opacity: 0; } to { opacity: 1; } }';
+    document.head.appendChild(style);
+    document.body.style.animation = 'wbPageIn 0.4s ease both';
+
+    // 同站链接点击：淡出后跳转（排除外链/锚点/新窗口/修饰键）
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      var href = a.getAttribute('href');
+      if (!href || href[0] === '#' || /^(https?:)?\/\//.test(href) ||
+          a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      document.body.style.transition = 'opacity 0.26s ease';
+      document.body.style.opacity = 0;
+      setTimeout(function () { window.location.href = a.href; }, 240);
+    });
+  })();
+</script>
+</body>
+</html>

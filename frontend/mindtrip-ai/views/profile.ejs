@@ -1,0 +1,279 @@
+<%- include('_head') %>
+
+<style>
+  /* ===== 画像页：水彩蝴蝶底图（整体提亮） + 呼吸 + 光尘 ===== */
+  .profile-bg {
+    position: fixed; inset: -3%; z-index: 0;
+    background: url('/png/人格总结页面.jpg') center/cover no-repeat;
+    opacity: 0.48;
+    animation: bgBreath 3s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes bgBreath {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+  }
+  .profile-bg__veil {
+    position: fixed; inset: 0; z-index: 0;
+    background: rgba(250, 246, 240, 0.32);
+  }
+  .profile-dust {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; overflow: hidden;
+  }
+  .profile-dust__p {
+    position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: #D4763E; opacity: 0.4;
+    animation: dustFloat ease-in-out infinite;
+  }
+  @keyframes dustFloat {
+    0%, 100% { transform: translate(0, 0); opacity: 0.12; }
+    50% { transform: translate(6px, -26px); opacity: 0.55; }
+  }
+
+  .page-enter { position: relative; z-index: 1; }
+
+  /* ===== 卡片交错浮现 ===== */
+  .stagger {
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .stagger.in { opacity: 1; transform: none; }
+
+  /* ===== 心灵指数圆环 ===== */
+  .soul-ring-wrap {
+    display: inline-block; position: relative;
+    margin: 14px auto 10px;
+  }
+  .soul-ring__num {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.9rem; font-weight: 700; color: var(--color-primary);
+  }
+
+  /* ===== 雷达图动画 ===== */
+  .radar-grid { opacity: 0; transition: opacity 0.8s ease; }
+  .radar-grid.in { opacity: 1; }
+  .radar-node { opacity: 0; transition: opacity 0.5s ease; }
+  .radar-node.in { opacity: 1; }
+
+  /* ===== 减少动态降级 ===== */
+  @media (prefers-reduced-motion: reduce) {
+    .profile-bg { animation: none; }
+    .stagger { opacity: 1; transform: none; transition: none; }
+    .radar-grid, .radar-node { opacity: 1; transition: none; }
+  }
+</style>
+
+<div class="profile-bg"></div>
+<div class="profile-bg__veil"></div>
+<div class="profile-dust" id="profile-dust"></div>
+
+<div class="page-enter">
+  <div class="profile-hero stagger">
+    <p class="text-muted" style="margin-bottom: 8px;">你的审美人格</p>
+    <div class="profile-name"><%= personality.profile.name %></div>
+    <div class="profile-desc"><%= personality.profile.poetic_desc %></div>
+  </div>
+
+  <div class="profile-index stagger">
+    <p class="text-muted" style="font-size: 0.8rem;"><%= checkinCount > 0 ? '旅途中 · 心灵指数' : '出发前心灵指数' %></p>
+    <div class="soul-ring-wrap">
+      <svg viewBox="0 0 84 84" width="112" height="112" role="img" aria-label="心灵指数">
+        <circle cx="42" cy="42" r="36" fill="none" stroke="rgba(139,111,71,0.18)" stroke-width="5"/>
+        <circle id="soul-ring-fill" cx="42" cy="42" r="36" fill="none"
+                stroke="#D4763E" stroke-width="5" stroke-linecap="round"
+                transform="rotate(-90 42 42)"
+                stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+      </svg>
+      <div class="soul-ring__num"><span id="soul-num">0</span></div>
+    </div>
+    <% if (checkinCount > 0) { %>
+      <p class="text-muted" style="font-size: 0.72rem; margin-top: 6px;">出发前 <%= personality.soul_score %> · 已打卡 <%= checkinCount %> 个场景，指数随旅途生长</p>
+    <% } else { %>
+      <p class="text-muted" style="font-size: 0.72rem; margin-top: 6px;">出发前基线 · 途中打卡与快评会持续刷新</p>
+    <% } %>
+    <div class="profile-index__tags">
+      <% personality.pre_tags.forEach(tag => { %>
+        <span class="tag tag--accent"><%= tag %></span>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="card stagger">
+    <h3 style="margin-bottom: 16px;">四维审美雷达</h3>
+    <div class="radar-container">
+      <%
+        const dims = personality.dim_scores;
+        const maxVal = 12;
+        const center = 100;
+        const radius = 70;
+        const angles = [-90, 0, 90, 180];
+        const dimNames = ['审美', '情绪', '社交', '节奏'];
+        const dimValues = [dims['审美'] || 0, dims['情绪'] || 0, dims['社交'] || 0, dims['节奏'] || 0];
+        // 雷达数据多边形目标顶点（供 JS 从中心展开动画）
+        const radarTarget = dimValues.map((v, i) => {
+          const r = radius * (Math.min(v, maxVal) / maxVal);
+          return [
+            center + r * Math.cos(angles[i] * Math.PI / 180),
+            center + r * Math.sin(angles[i] * Math.PI / 180)
+          ];
+        });
+      %>
+      <svg class="radar-chart" viewBox="0 0 200 200">
+        <% for (let level = 1; level <= 4; level++) { %>
+          <%
+            const gridPts = [];
+            for (let i = 0; i < 4; i++) {
+              const r = radius * (level / 4);
+              const x = center + r * Math.cos(angles[i] * Math.PI / 180);
+              const y = center + r * Math.sin(angles[i] * Math.PI / 180);
+              gridPts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+            }
+          %>
+          <polygon class="radar-grid" points="<%= gridPts.join(' ') %>" fill="none" stroke="#E8E0D5" stroke-width="1"/>
+        <% } %>
+        <polygon id="radar-data" points="100,100 100,100 100,100 100,100"
+                 fill="rgba(139, 111, 71, 0.2)" stroke="#8B6F47" stroke-width="2"/>
+        <% for (let i = 0; i < 4; i++) { %>
+          <circle class="radar-node"
+                  cx="<%= (center + radius * Math.cos(angles[i] * Math.PI / 180)).toFixed(1) %>"
+                  cy="<%= (center + radius * Math.sin(angles[i] * Math.PI / 180)).toFixed(1) %>"
+                  r="3" fill="#8B6F47"/>
+          <text class="radar-node"
+                x="<%= (center + (radius + 15) * Math.cos(angles[i] * Math.PI / 180)).toFixed(1) %>"
+                y="<%= (center + (radius + 15) * Math.sin(angles[i] * Math.PI / 180) + 4).toFixed(1) %>"
+                text-anchor="middle" font-size="12" fill="#3E3528" font-family="Noto Sans SC">
+            <%= dimNames[i] %>
+          </text>
+        <% } %>
+      </svg>
+    </div>
+    <div style="display: flex; justify-content: space-around; margin-top: 12px;">
+      <% dimNames.forEach((name, i) => { %>
+        <div style="text-align: center;">
+          <div style="font-family: var(--font-display); font-weight: 600; color: var(--color-primary);"><%= dimValues[i] %></div>
+          <div style="font-size: 0.75rem; color: var(--color-text-light);"><%= name %></div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="card card--accent stagger">
+    <h3 style="margin-bottom: 8px;">你的偏好倾向</h3>
+    <p class="text-poetic"><%= personality.profile.preference %></p>
+  </div>
+
+  <div class="card stagger">
+    <h3 style="margin-bottom: 8px;">测评标签</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <% personality.quiz_tags.forEach(tag => { %>
+        <span class="tag tag--primary"><%= tag %></span>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="mt-lg stagger">
+    <a href="/explore" class="btn btn-primary">
+      开始探索世界 →
+    </a>
+    <a href="/route?city=jingdezhen" class="btn btn-outline"
+       style="width:100%; text-align:center; margin-top:10px;">
+      直接查看景德镇动线
+    </a>
+  </div>
+</div>
+
+<script>
+  const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PRE_SCORE = Math.max(0, Math.min(100, <%- personality.soul_score %>));
+  const LIVE_SCORE = Math.max(PRE_SCORE, Math.min(100, <%- liveScore %>));
+  const HAS_TRIP = <%- checkinCount > 0 ? 'true' : 'false' %>;
+  const RADAR_TARGET = <%- JSON.stringify(radarTarget) %>;
+  const RADAR_CENTER = 100;
+
+  // ---- 卡片交错浮现（100ms stagger） ----
+  function staggerIn() {
+    const els = document.querySelectorAll('.stagger');
+    if (REDUCE) {
+      els.forEach(el => el.classList.add('in'));
+      return;
+    }
+    els.forEach((el, i) => setTimeout(() => el.classList.add('in'), 120 + i * 100));
+  }
+
+  // ---- 背景光尘 ----
+  function spawnDust() {
+    const box = document.getElementById('profile-dust');
+    for (let i = 0; i < 20; i++) {
+      const s = document.createElement('span');
+      s.className = 'profile-dust__p';
+      s.style.left = (5 + Math.random() * 90) + '%';
+      s.style.top = (8 + Math.random() * 84) + '%';
+      s.style.animationDelay = (Math.random() * 5).toFixed(1) + 's';
+      s.style.animationDuration = (6 + Math.random() * 3).toFixed(1) + 's';
+      box.appendChild(s);
+    }
+  }
+
+  // ---- 雷达图：数据多边形从中心向四顶点展开 ----
+  function animateRadar() {
+    const poly = document.getElementById('radar-data');
+    document.querySelectorAll('.radar-grid')
+      .forEach(el => setTimeout(() => el.classList.add('in'), 200));
+    if (REDUCE) {
+      poly.setAttribute('points', RADAR_TARGET.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+      document.querySelectorAll('.radar-node').forEach(el => el.classList.add('in'));
+      return;
+    }
+    const dur = 2000, start = performance.now();
+    function frame(now) {
+      const t = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      const pts = RADAR_TARGET.map(p => {
+        const x = RADAR_CENTER + (p[0] - RADAR_CENTER) * e;
+        const y = RADAR_CENTER + (p[1] - RADAR_CENTER) * e;
+        return x.toFixed(1) + ',' + y.toFixed(1);
+      });
+      poly.setAttribute('points', pts.join(' '));
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        document.querySelectorAll('.radar-node').forEach(el => el.classList.add('in'));
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---- 心灵指数：圆环填充 + 数字滚动（有打卡时从出发前滚到实时值，展示"生长"） ----
+  function animateSoul() {
+    const ring = document.getElementById('soul-ring-fill');
+    const num = document.getElementById('soul-num');
+    const CIRC = 226.2; // 2π × 36
+    const from = HAS_TRIP ? PRE_SCORE : 0;
+    const to = LIVE_SCORE;
+    if (REDUCE) {
+      ring.style.strokeDashoffset = (CIRC * (1 - to / 100)).toFixed(1);
+      num.textContent = to;
+      return;
+    }
+    const dur = 2000, start = performance.now();
+    function frame(now) {
+      const t = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3);
+      const val = from + (to - from) * e;
+      ring.style.strokeDashoffset = (CIRC * (1 - val / 100)).toFixed(1);
+      num.textContent = Math.round(val);
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  staggerIn();
+  if (!REDUCE) spawnDust();
+  animateRadar();
+  animateSoul();
+</script>
+
+<%- include('_foot') %>

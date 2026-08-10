@@ -1,0 +1,276 @@
+<%- include('_head') %>
+
+<style>
+  /* 星河长河行程过渡层（图5） */
+  .travel-mask {
+    position: fixed; inset: 0; z-index: 80; background: #241D15; opacity: 0;
+    transition: opacity 0.4s ease; display: flex; align-items: center; justify-content: center;
+  }
+  .travel-mask[hidden] { display: none; }
+  .travel-mask__img {
+    position: absolute; inset: 0;
+    background: url('/png/游玩过程中的加载页面.png') center/cover no-repeat;
+    opacity: 0.88; animation: travelDrift 16s ease-in-out infinite alternate;
+  }
+  .travel-mask__veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(30,24,16,0.4), rgba(30,24,16,0.6));
+  }
+  .travel-text {
+    position: relative; z-index: 2; text-align: center; padding: 0 34px;
+    font-family: var(--font-display); font-size: 1rem; line-height: 2; color: #F5EDDE;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.7); letter-spacing: 0.06em;
+  }
+  @keyframes travelDrift {
+    from { background-position: 0 0; }
+    to { background-position: 3% 1.5%; }
+  }
+</style>
+
+<div class="page-enter" id="scene-app">
+  <div id="scene-loading" class="empty-state">
+    <div class="empty-state__icon">⏳</div>
+    <div class="empty-state__text">加载中…</div>
+  </div>
+</div>
+
+<!-- 星河长河过渡层 -->
+<div class="travel-mask" id="travel-mask" hidden>
+  <div class="travel-mask__img"></div>
+  <div class="travel-mask__veil"></div>
+  <div class="travel-text">顺着时光星河前行<br>奔赴下一处站点</div>
+</div>
+
+<script>
+  const sceneId = '<%= sceneId %>';
+  let sceneData = null;
+  let checkinStartTime = null;
+  let timerInterval = null;
+
+  async function loadScene() {
+    const res = await fetch('/api/v1/scene/' + sceneId);
+    if (!res.ok) {
+      document.getElementById('scene-loading').innerHTML = '<div class="empty-state__text">场景不存在</div>';
+      return;
+    }
+    sceneData = await res.json();
+    renderScene();
+  }
+
+  function renderScene() {
+    const s = sceneData;
+    const crowdClass = s.crowd_level === '低' ? 'crowd-low' :
+                      s.crowd_level === '中' ? 'crowd-medium' : 'crowd-high';
+    const currentHour = new Date().getHours();
+    const activeIdx = currentHour < 8 ? 0 : currentHour < 10 ? 1 :
+                      currentHour < 12 ? 2 : currentHour < 14 ? 3 :
+                      currentHour < 16 ? 4 : currentHour < 18 ? 5 : 6;
+
+    document.getElementById('scene-app').innerHTML = `
+      <div class="scene-header">
+        <div class="scene-type">${s.emoji || ''} ${s.type}</div>
+        <div class="scene-name">${s.name}</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <span class="tag ${crowdClass}">人流量: ${s.crowd_level}</span>
+          <span class="tag tag--primary">${s.time_slot} · ${s.suggested_time}</span>
+          ${s.time_limited ? `<span class="tag tag--accent">${s.time_limited}</span>` : ''}
+        </div>
+      </div>
+
+      <div class="scene-poetic">${s.poetic_desc}</div>
+
+      <div class="card card--accent">
+        <h3 style="margin-bottom: 8px;">为什么适合你</h3>
+        <p style="font-size: 0.9rem; line-height: 1.8; color: var(--color-text);">${s.why_fit}</p>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 12px;">基本信息</h3>
+        <div class="scene-info">
+          <div class="scene-info__row"><span class="icon">📍</span> ${s.address}</div>
+          <div class="scene-info__row"><span class="icon">🕐</span> 建议时间: ${s.suggested_time}</div>
+          ${s.must_visit && s.must_visit.length > 0 ? `
+            <div class="scene-info__row"><span class="icon">✨</span> 必打卡: ${s.must_visit.join('、')}</div>
+          ` : ''}
+        </div>
+      </div>
+
+      ${s.signature_dishes && s.signature_dishes.length > 0 ? `
+        <div class="card">
+          <h3 style="margin-bottom: 12px;">招牌菜</h3>
+          ${s.signature_dishes.map(d => `
+            <div style="margin-bottom: 12px;">
+              <div style="font-weight: 600; color: var(--color-text);">${d.name}</div>
+              <div style="font-size: 0.85rem; color: var(--color-text-light);">${d.desc}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <div class="card">
+        <h3 style="margin-bottom: 12px;">人流量分布</h3>
+        <div class="crowd-chart">
+          ${s.crowd_distribution.map((val, i) => {
+            const h = (val / 9) * 100;
+            const cls = val <= 3 ? 'crowd-chart__bar--low' :
+                        val <= 6 ? 'crowd-chart__bar--medium' : 'crowd-chart__bar--high';
+            const active = i === activeIdx ? 'crowd-chart__bar--active' : '';
+            return `<div class="crowd-chart__bar ${cls} ${active}"
+                         style="height: ${h}%;"
+                         title="${s.crowd_labels[i]}: ${val}/9"></div>`;
+          }).join('')}
+        </div>
+        <div class="crowd-chart__labels">
+          ${s.crowd_labels.map(l => `<span>${l}</span>`).join('')}
+        </div>
+        <p class="text-muted mt-xs" style="font-size: 0.75rem; text-align:center;">橙色为当前时段</p>
+      </div>
+
+      <div class="card">
+        <div id="checkin-section">
+          ${s.checked_in ? `
+            <div class="stay-timer" id="stay-timer-display">
+              <span>⏱️ 停留时长:</span>
+              <span class="stay-timer__value" id="stay-time">计算中...</span>
+            </div>
+            <div id="review-section" class="mt-md"></div>
+          ` : `
+            <button class="btn checkin-btn" onclick="doCheckin()">
+              📍 到达打卡
+            </button>
+            <p class="text-muted mt-xs" style="text-align:center; font-size:0.75rem;">
+              打卡后可对场景进行快评，帮助 AI 优化推荐
+            </p>
+          `}
+        </div>
+      </div>
+
+      <div class="mt-md" style="display:flex; gap:12px;">
+        <a href="${s.nav_url}" target="_blank" class="btn btn-outline" style="flex:1;">
+          🧭 导航
+        </a>
+        <a href="/route" class="btn btn-outline" style="flex:1;" onclick="leaveToRoute(); return false;">
+          ← 返回动线
+        </a>
+      </div>
+    `;
+
+    if (s.checked_in) {
+      startStayTimer();
+      loadReviewSection();
+    }
+  }
+
+  async function doCheckin() {
+    const res = await fetch('/api/v1/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scene_id: sceneId })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      sceneData.checked_in = true;
+      checkinStartTime = Date.now();
+      renderScene();
+    }
+  }
+
+  function startStayTimer() {
+    checkinStartTime = Date.now();
+    const timerEl = document.getElementById('stay-time');
+    if (!timerEl) return;
+
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - checkinStartTime) / 1000);
+      const min = Math.floor(elapsed / 60);
+      const sec = elapsed % 60;
+      if (timerEl) {
+        timerEl.textContent = `${min}分${sec}秒`;
+      }
+    }, 1000);
+  }
+
+  async function loadReviewSection() {
+    const section = document.getElementById('review-section');
+    if (!section) return;
+
+    section.innerHTML = `
+      <h3 style="margin-bottom: 12px;">快评</h3>
+      <div class="review-btns">
+        <button class="btn btn-recommend" onclick="doReview(true)">
+          👍 推荐
+        </button>
+        <button class="btn btn-not-recommend" onclick="doReview(false)">
+          👎 不推荐
+        </button>
+      </div>
+      <textarea class="review-comment" id="review-comment" placeholder="一句话感受（选填）..."></textarea>
+      <div id="review-result"></div>
+      <button class="btn btn-outline mt-sm" style="width:100%; font-size: 0.8rem;" onclick="doLeave()">
+        跳过快评，仅记录停留时长 →
+      </button>
+    `;
+  }
+
+  function getStayMinutes() {
+    if (!checkinStartTime) return 0;
+    return Math.floor((Date.now() - checkinStartTime) / 60000);
+  }
+
+  async function doReview(recommend) {
+    const comment = document.getElementById('review-comment')?.value || '';
+    const stayMinutes = getStayMinutes();
+    const res = await fetch('/api/v1/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scene_id: sceneId, recommend, comment, stay_minutes: stayMinutes })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      if (timerInterval) clearInterval(timerInterval);
+      document.getElementById('review-section').innerHTML = `
+        <div class="card-warm" style="padding: 16px; border-radius: var(--radius-md); text-align: center;">
+          <div style="font-size: 1.5rem; margin-bottom: 8px;">${recommend ? '🙏' : '📝'}</div>
+          <p style="font-size: 0.9rem; color: var(--color-text);">${data.message}</p>
+          ${stayMinutes > 0 ? `<p class="text-muted mt-xs" style="font-size: 0.75rem;">已记录停留 ${stayMinutes} 分钟</p>` : ''}
+        </div>
+        <a href="/route" class="btn btn-outline mt-sm" style="width:100%;" onclick="leaveToRoute(); return false;">
+          ← 继续心旅
+        </a>
+        <a href="/return" class="btn btn-primary mt-sm" style="width:100%;">
+          查看归途评估 →
+        </a>
+      `;
+    }
+  }
+
+  // 星河长河行程过渡：先展示过渡层，再跳转
+  function showTravelTransition(callback) {
+    const mask = document.getElementById('travel-mask');
+    mask.hidden = false;
+    requestAnimationFrame(() => { mask.style.opacity = 1; });
+    setTimeout(() => { if (callback) callback(); }, 1500);
+  }
+  function leaveToRoute() {
+    showTravelTransition(() => { window.location.href = '/route'; });
+  }
+
+  async function doLeave() {
+    const stayMinutes = getStayMinutes();
+    if (stayMinutes > 0) {
+      await fetch('/api/v1/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scene_id: sceneId, stay_duration_minutes: stayMinutes })
+      });
+    }
+    if (timerInterval) clearInterval(timerInterval);
+    leaveToRoute();
+  }
+
+  loadScene();
+</script>
+
+<%- include('_foot') %>

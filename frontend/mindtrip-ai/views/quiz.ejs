@@ -1,0 +1,344 @@
+<%- include('_head') %>
+
+<style>
+  /* ===== 测评页：黑金塔罗（深棕底 + 星纹 + 金线） ===== */
+  .quiz-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background: url('/png/用户测试页面.jpg') center/cover no-repeat;
+    opacity: 0.88;
+  }
+  .quiz-mask {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(180deg, rgba(36,29,20,0.42) 0%, rgba(46,37,27,0.62) 100%);
+  }
+  #quiz-app { position: relative; z-index: 2; }
+
+  .quiz-header h1 { color: #F2E9DA; text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+
+  /* 星轨圆环进度 */
+  .orbit {
+    position: relative; width: 96px; height: 96px; margin: 10px auto 18px;
+  }
+  .orbit svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .orbit-track { fill: none; stroke: rgba(196,167,125,0.22); stroke-width: 2.5; }
+  .orbit-fill {
+    fill: none; stroke: #D4763E; stroke-width: 2.5; stroke-linecap: round;
+    stroke-dasharray: 276.46; stroke-dashoffset: 276.46;
+    filter: drop-shadow(0 0 4px rgba(212,118,62,0.6));
+    transition: stroke-dashoffset 0.5s ease;
+  }
+  .orbit-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 0.85rem; color: #F2E9DA; letter-spacing: 0.04em;
+  }
+  .orbit-deco {
+    position: absolute; inset: -14px; border-radius: 50%;
+    border: 1px dashed rgba(212,118,62,0.35);
+    animation: orbitSpin 22s linear infinite;
+  }
+  .orbit-deco::before, .orbit-deco::after {
+    content: '✦'; position: absolute; color: #E8A463; font-size: 0.6rem; text-shadow: 0 0 6px rgba(232,164,99,0.8);
+  }
+  .orbit-deco::before { top: -3px; left: 50%; }
+  .orbit-deco::after { bottom: 2px; left: 12%; }
+  @keyframes orbitSpin { to { transform: rotate(360deg); } }
+
+  /* 题目卡片：深色实底，暖金描边 */
+  .quiz-question {
+    background: rgba(30,23,15,0.94); border: 1px solid rgba(212,118,62,0.45);
+    border-radius: var(--radius-md); padding: 20px 18px; backdrop-filter: blur(4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+  /* 题干：浅色文字置于深色底上，覆盖全局 style.css 的白底浅字（级联冲突）
+     注意：全局 .quiz-scenario 有 background:#fff 与深色文字，这里必须显式覆盖背景 */
+  .quiz-scenario {
+    color: #FFF7EB;
+    font-family: var(--font-display);
+    font-size: 1.06rem;
+    line-height: 1.95;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(196,167,125,0.2);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 0;
+    box-shadow: none;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  }
+  .quiz-section-divider {
+    text-align: center; font-size: 0.82rem; font-weight: 600; color: #F0B77D;
+    background: rgba(30,23,15,0.92); border: 1px dashed rgba(212,118,62,0.6);
+    border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px;
+  }
+  .quiz-option {
+    background: rgba(250,246,240,0.14); border: 1.5px solid rgba(196,167,125,0.55);
+    color: #F9F1E4; border-radius: 10px; padding: 13px 15px; text-align: left;
+    font-size: 0.92rem; line-height: 1.65; transition: all 0.25s ease; cursor: pointer;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  }
+  .quiz-option:hover { border-color: #D4763E; background: rgba(212,118,62,0.16); }
+  .quiz-option--selected {
+    border-color: #D4763E; color: #FFF3E2;
+    background: rgba(212,118,62,0.22);
+    box-shadow: 0 0 14px rgba(212,118,62,0.35);
+  }
+  .quiz-nav .btn-outline { color: #D8CBAE; border-color: rgba(196,167,125,0.4); background: transparent; }
+  .quiz-nav .btn-outline:hover { border-color: #E8A463; color: #F5EDDE; }
+
+  /* 星河人形生成加载过渡层 */
+  .gen-mask {
+    position: fixed; inset: 0; z-index: 80; background: #241D15;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  /* 关键修复：display:flex 会覆盖 hidden 属性，必须显式声明 hidden 时隐藏 */
+  .gen-mask[hidden] { display: none; }
+  .gen-mask__img {
+    position: absolute; inset: 0; background: url('/png/做完测试的加载页面.jpg') center/cover no-repeat;
+    opacity: 0.85;
+  }
+  .gen-mask__veil {
+    position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,24,16,0.35), rgba(30,24,16,0.55));
+  }
+  .gen-particle {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: #E8A463; box-shadow: 0 0 8px rgba(232,164,99,0.9);
+    opacity: 0; transition: transform 1.5s cubic-bezier(.3,.6,.3,1), opacity 0.5s ease;
+  }
+  .gen-text {
+    position: relative; z-index: 2; text-align: center; padding: 0 34px;
+    font-family: var(--font-display); font-size: 1rem; line-height: 2; color: #F5EDDE;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.7); letter-spacing: 0.05em;
+    white-space: pre-line;
+  }
+  .gen-caret { color: #E8A463; animation: caretBlink 0.85s steps(1) infinite; }
+  @keyframes caretBlink { 50% { opacity: 0; } }
+</style>
+
+<div class="quiz-bg"></div>
+<div class="quiz-mask"></div>
+
+<div class="page-enter" id="quiz-app">
+  <div class="quiz-header" style="text-align:center;">
+    <h1>心灵测评</h1>
+  </div>
+
+  <!-- 星轨圆环进度 -->
+  <div class="orbit" id="orbit">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="orbit-track" cx="50" cy="50" r="44"/>
+      <circle class="orbit-fill" id="orbit-fill" cx="50" cy="50" r="44"/>
+    </svg>
+    <div class="orbit-deco"></div>
+    <div class="orbit-num" id="quiz-counter">1 / 1</div>
+  </div>
+
+  <div id="quiz-content"></div>
+
+  <div class="quiz-nav" id="quiz-nav" style="display:none;">
+    <button class="btn btn-outline btn-small" id="btn-prev" onclick="prevQuestion()">
+      ← 上一题
+    </button>
+    <span style="flex:1;"></span>
+    <button class="btn btn-primary btn-small" id="btn-next" onclick="nextQuestion()">
+      下一题 →
+    </button>
+  </div>
+</div>
+
+<!-- 星河人形生成加载过渡层 -->
+<div class="gen-mask" id="gen-mask" hidden>
+  <div class="gen-mask__img"></div>
+  <div class="gen-mask__veil"></div>
+  <div id="gen-particles"></div>
+  <div class="gen-text"><span id="gen-type"></span><span class="gen-caret">丨</span></div>
+</div>
+
+<script>
+  const ORBIT_C = 276.46; // 2π×44
+  let questions = [];
+  let currentIndex = 0;
+  let answers = [];
+  let autoAdvanceTimer = null; // 首次作答的自动跳题定时器（可被手动前进/回退取消）
+
+  // 加载题库（8 道快测 + 3 道行程约束）
+  async function loadQuiz() {
+    const res = await fetch('/api/v1/quiz');
+    const data = await res.json();
+    questions = [...(data.questions || []), ...(data.constraints || [])];
+    answers = new Array(questions.length).fill(null);
+    renderQuestion();
+  }
+
+  function updateOrbit() {
+    const progress = questions.length ? (currentIndex + 1) / questions.length : 0;
+    document.getElementById('orbit-fill').style.strokeDashoffset = (ORBIT_C * (1 - progress)).toFixed(1);
+    document.getElementById('quiz-counter').textContent = `${currentIndex + 1} / ${questions.length}`;
+  }
+
+  function renderQuestion() {
+    const q = questions[currentIndex];
+    if (!q) return;
+
+    const selectedOption = answers[currentIndex];
+
+    const sectionHeader = q.is_constraint && currentIndex === 8
+      ? `<div class="quiz-section-divider">行程安排 · 再答 3 题，推荐会更贴合你的实际安排</div>`
+      : '';
+
+    document.getElementById('quiz-content').innerHTML = `
+      ${sectionHeader}
+      <div class="quiz-question fade-in-up">
+        <div class="quiz-scenario">${q.scenario}</div>
+        <div class="quiz-options" style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
+          ${q.options.map((opt, i) => `
+            <button class="quiz-option ${selectedOption === i ? 'quiz-option--selected' : ''}"
+                    onclick="selectOption(${i})">
+              ${opt.text}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    updateOrbit();
+
+    // 导航按钮
+    document.getElementById('btn-prev').style.display = currentIndex > 0 ? '' : 'none';
+    document.getElementById('quiz-nav').style.display = 'flex';
+
+    const btnNext = document.getElementById('btn-next');
+    if (currentIndex === questions.length - 1) {
+      btnNext.textContent = '查看结果 →';
+      btnNext.disabled = !answers.every(a => a !== null);
+      btnNext.style.display = '';
+    } else {
+      // 中间题也显示"下一题"按钮：用户回退上一题后可以手动前进
+      btnNext.textContent = '下一题 →';
+      btnNext.disabled = answers[currentIndex] === null;
+      btnNext.style.display = '';
+    }
+  }
+
+  function selectOption(index) {
+    const wasAnswered = answers[currentIndex] !== null;
+    answers[currentIndex] = index;
+    renderQuestion();
+
+    // 首次作答：选中后自动跳转；回改：不自动跳，让用户自己决定
+    if (!wasAnswered) {
+      autoAdvanceTimer = setTimeout(() => {
+        if (currentIndex < questions.length - 1) {
+          currentIndex++;
+          renderQuestion();
+        } else {
+          submitQuiz();
+        }
+      }, 300);
+    }
+  }
+
+  async function nextQuestion() {
+    clearTimeout(autoAdvanceTimer); // 手动前进时取消自动跳转，避免连跳
+    if (currentIndex < questions.length - 1) {
+      currentIndex++;
+      renderQuestion();
+    } else {
+      await submitQuiz();
+    }
+  }
+
+  // ---------- 星河人形加载过渡 ----------
+  // 打字机：一个字一个字弹出
+  function typeWriter() {
+    const el = document.getElementById('gen-type');
+    const LINES = ['正在收集你的审美碎片', '勾勒专属心灵轮廓'];
+    let li = 0, ci = 0;
+    function tick() {
+      if (li >= LINES.length) return;
+      if (ci < LINES[li].length) {
+        el.textContent += LINES[li][ci];
+        ci++;
+        setTimeout(tick, 85);
+      } else {
+        el.textContent += '\n';
+        li++; ci = 0;
+        setTimeout(tick, 240);
+      }
+    }
+    tick();
+  }
+
+  function showGenLoading() {
+    const mask = document.getElementById('gen-mask');
+    mask.hidden = false;
+
+    const container = document.getElementById('gen-particles');
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const cx = vw / 2, cy = vh / 2;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduce) {
+      document.getElementById('gen-type').textContent = '正在收集你的审美碎片\n勾勒专属心灵轮廓';
+      setTimeout(() => { window.location.href = '/profile'; }, 600);
+      return;
+    }
+
+    // 星光粒子从四周向中心汇聚（勾勒人形轮廓的方向感）
+    const N = 26;
+    for (let i = 0; i < N; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'gen-particle';
+      const angle = (i / N) * Math.PI * 2;
+      const dist = Math.max(vw, vh) * (0.55 + Math.random() * 0.35);
+      const sx = cx + Math.cos(angle) * dist;
+      const sy = cy + Math.sin(angle) * dist * 1.4;
+      const tx = cx + (Math.random() - 0.5) * 120;
+      const ty = cy + (Math.random() - 0.5) * 160;
+      dot.style.left = sx + 'px';
+      dot.style.top = sy + 'px';
+      container.appendChild(dot);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          dot.style.transform = `translate(${tx - sx}px, ${ty - sy}px)`;
+          dot.style.opacity = '0.9';
+        }, i * 45);
+      });
+    }
+
+    typeWriter();
+    setTimeout(() => { window.location.href = '/profile'; }, 2250);
+  }
+
+  async function submitQuiz() {
+    if (!answers.every(a => a !== null)) return;
+
+    const answerData = answers.map((optIdx, i) => ({
+      question_id: questions[i].id,
+      option_index: optIdx
+    }));
+
+    const res = await fetch('/api/v1/submit_quiz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers: answerData })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showGenLoading();
+    } else {
+      alert(data.message || '提交失败，请重试');
+    }
+  }
+
+  function prevQuestion() {
+    clearTimeout(autoAdvanceTimer); // 回退时取消自动跳转，避免随后被带到下一题
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderQuestion();
+    }
+  }
+
+  loadQuiz();
+</script>
+
+<%- include('_foot') %>

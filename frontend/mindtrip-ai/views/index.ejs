@@ -1,0 +1,325 @@
+<%- include('_head') %>
+
+<style>
+  /* ========== 首页 Landing v3 · 拼图开场 + 暗到光 ========== */
+
+  /* ---- 开场拼图遮罩 ---- */
+  .intro-mask {
+    position: fixed; inset: 0; z-index: 60; background: #2A2218;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .intro-mask__img {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    opacity: 0.95;
+  }
+  .pz {
+    position: absolute; width: 33.334%; height: 33.334%;
+    background: #3E3528;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35); opacity: 0; will-change: transform;
+  }
+  .pz[data-i="0"] { left: 0;        top: 0; }
+  .pz[data-i="1"] { left: 33.334%;  top: 0;      clip-path: polygon(0 0,100% 0,100% 78%,62% 78%,62% 100%,38% 100%,38% 78%,0 78%); }
+  .pz[data-i="2"] { left: 66.668%;  top: 0; }
+  .pz[data-i="3"] { left: 0;        top: 33.334%; clip-path: polygon(0 0,100% 0,100% 38%,78% 38%,78% 62%,100% 62%,100% 100%,0 100%); }
+  .pz[data-i="5"] { left: 66.668%;  top: 33.334%; clip-path: polygon(100% 0,22% 0,22% 38%,0 38%,0 62%,22% 62%,22% 100%,100% 100%); }
+  .pz[data-i="6"] { left: 0;        top: 66.668%; }
+  .pz[data-i="7"] { left: 33.334%;  top: 66.668%; clip-path: polygon(0 100%,100% 100%,100% 0,62% 0,62% 22%,38% 22%,38% 0,0 0); }
+  .pz[data-i="8"] { left: 66.668%;  top: 66.668%; }
+  .intro-slogan {
+    position: absolute; z-index: 3; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 33.334%; text-align: center;
+    font-family: var(--font-display); font-size: 0.95rem; line-height: 1.9;
+    color: #F2E9DA; letter-spacing: 0.05em;
+    text-shadow: 0 2px 18px rgba(0,0,0,0.75), 0 0 30px rgba(212,118,62,0.4);
+  }
+  .intro-slogan b { color: #E8A463; font-weight: 600; }
+
+  /* ---- 暗→光 亮度层 ---- */
+  .dawn {
+    position: fixed; inset: 0; z-index: 5; pointer-events: none;
+    background: linear-gradient(180deg, rgba(250,246,240,0) 0%, rgba(250,246,240,0.92) 100%);
+    opacity: 0;
+  }
+
+  /* ---- Hero：深棕暗场（对齐 #3E3528 色板） ---- */
+  .hero {
+    background: linear-gradient(180deg, #2C2419 0%, #3E3528 60%, #46392B 100%);
+    color: #EDE3D3; text-align: center;
+    margin: -16px -20px 0; padding: 56px 20px 44px;
+  }
+  .hero-brand {
+    font-family: var(--font-display); letter-spacing: 0.34em; font-size: 0.78rem; color: #C9B98F;
+  }
+  .hero-slogan {
+    font-family: var(--font-display); font-size: 1.5rem; font-weight: 600;
+    line-height: 1.75; margin-top: 14px; letter-spacing: 0.04em; color: #F2E9DA;
+  }
+  .hero-slogan b { color: #E8A463; font-weight: 600; }
+  .hero-sub { font-size: 0.8rem; color: #C4B998; margin-top: 10px; line-height: 1.8; }
+  .hero-cta { display: block; width: 100%; margin-top: 22px; padding: 15px 20px; font-size: 1.02rem; }
+
+  /* ---- 通用区块 ---- */
+  .sec { padding: 44px 2px 8px; }
+  .sec-title { font-family: var(--font-display); font-size: 1.18rem; font-weight: 600; text-align: center; letter-spacing: 0.04em; }
+  .sec-lead { font-size: 0.78rem; text-align: center; margin-top: 6px; margin-bottom: 20px; line-height: 1.8; }
+
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---- 痛点区（暮色） ---- */
+  .sec-pain { background: linear-gradient(180deg, #46392B 0%, #57493A 100%); color: #EDE3D3; margin: 0 -20px; padding: 44px 20px 30px; }
+  .sec-pain .sec-title { color: #F0E6D5; }
+  .sec-pain .sec-lead { color: #B7A98C; }
+  .pain-card {
+    background: #F7F2EA; border: 1px solid #E4D8C2; border-radius: var(--radius-md);
+    padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .pain-card__t { font-weight: 600; color: #3E3528; font-size: 0.94rem; }
+  .pain-card__d { font-size: 0.8rem; color: #7A6E5D; margin-top: 4px; line-height: 1.7; }
+  .pain-card__fix {
+    display: inline-block; margin-top: 8px; font-size: 0.72rem; color: #8B6F47;
+    background: #F1E9DA; border: 1px solid #D9C6A6; border-radius: 999px; padding: 3px 10px;
+  }
+
+  /* ---- 解法区（晨光） ---- */
+  .sec-solve { background: linear-gradient(180deg, #5C4B33 0%, #6B5738 100%); color: #F2E9DA; margin: 0 -20px; padding: 44px 20px 30px; }
+  .sec-solve .sec-title { color: #F5EDDE; }
+  .sec-solve .sec-lead { color: #C9B98F; }
+  .step {
+    display: flex; gap: 12px; margin-bottom: 12px;
+    background: rgba(250,246,240,0.07); border: 1px solid rgba(250,246,240,0.14);
+    border-radius: var(--radius-md); padding: 12px 14px;
+  }
+  .step__num {
+    flex: 0 0 32px; height: 32px; border-radius: 50%;
+    background: #E8A463; color: #2A2218; font-family: var(--font-display);
+    font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; justify-content: center;
+  }
+  .step__t { font-size: 0.92rem; font-weight: 600; color: #F5EDDE; }
+  .step__d { font-size: 0.78rem; color: #D8CBAE; margin-top: 3px; line-height: 1.7; }
+
+  /* ---- 场景区（白昼） ---- */
+  .sec-scene { background: linear-gradient(180deg, #6B5738 0%, #EFE6D6 100%); color: #3E3528; margin: 0 -20px; padding: 44px 20px 30px; }
+  .sec-scene .sec-title { color: #3E3528; }
+  .sec-scene .sec-lead { color: #7A6E5D; }
+  .scene-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .scene-mini {
+    background: #FFFDF9; border: 1px solid #E4D8C2; border-radius: var(--radius-md);
+    padding: 12px 14px; box-shadow: 0 4px 14px rgba(62,53,40,0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .scene-mini:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(62,53,40,0.14); }
+  .scene-mini__name { font-size: 0.9rem; font-weight: 600; color: #3E3528; }
+  .scene-mini__desc { font-size: 0.74rem; color: #8A7D6A; margin-top: 3px; line-height: 1.6; }
+
+  /* ---- 收尾 CTA（光） ---- */
+  .sec-final { background: #FAF6F0; margin: 0 -20px; padding: 52px 20px 8px; text-align: center; }
+  .final-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; color: #6B4A1F; line-height: 1.8; }
+  .final-cta { display: block; width: 100%; margin-top: 22px; padding: 15px 20px; font-size: 1.02rem; }
+  .final-note { font-size: 0.7rem; color: #8A7D6A; margin-top: 12px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .intro-mask { display: none !important; }
+  }
+</style>
+
+<!-- ========== 开场：记忆拼图（碎片乱序 → 归位拼合 → 揭开首页） ========== -->
+<div class="intro-mask" id="intro-mask">
+  <div class="intro-mask__img" id="intro-img"></div>
+  <div class="intro-slogan" id="intro-slogan">拼凑内心碎片，<br>奔赴<b>适配你的旅途</b></div>
+  <div class="pz" data-i="0"></div><div class="pz" data-i="1"></div><div class="pz" data-i="2"></div>
+  <div class="pz" data-i="3"></div><div class="pz" data-i="5"></div>
+  <div class="pz" data-i="6"></div><div class="pz" data-i="7"></div><div class="pz" data-i="8"></div>
+</div>
+
+<!-- ========== Hero：深棕暗场 ========== -->
+<div class="hero">
+  <div class="hero-brand">心旅 AI · MINDTRIP AI</div>
+  <p class="hero-slogan">
+    不只是去哪里<br>而是<b>为什么去</b>
+  </p>
+  <p class="hero-sub">在出发之前，先遇见自己<br>8 道情境题 · 2 分钟 · 找到适合你此刻心境的旅程</p>
+  <a href="/consent" class="btn btn-primary hero-cta">开启你的自我探索之旅 →</a>
+</div>
+
+<!-- ========== 痛点：暗处看清 ========== -->
+<div class="sec sec-pain">
+  <div class="sec-title reveal">先看清，是什么困住了你</div>
+  <div class="sec-lead reveal">这些不是你的问题，是攻略平台的问题</div>
+
+  <div class="pain-card reveal">
+    <div class="pain-card__t">热门榜永远是同一条线</div>
+    <div class="pain-card__d">搜景德镇，前十条都是「御窑—陶溪川—三宝」。按销量排序，谁火谁靠前，你自己的偏好没人问。</div>
+    <span class="pain-card__fix">心旅 AI：按人格匹配，而不是按人气</span>
+  </div>
+
+  <div class="pain-card reveal">
+    <div class="pain-card__t">想慢下来，却没处可去</div>
+    <div class="pain-card__d">露营、寺庙、围炉煮茶都火成这样了，景德镇还是观光加购物。想按心情走一趟，找不到对应的产品。</div>
+    <span class="pain-card__fix">心旅 AI：为「此刻的心情」编排路线</span>
+  </div>
+
+  <div class="pain-card reveal">
+    <div class="pain-card__t">攻略存了 20 篇，更不知道该去哪</div>
+    <div class="pain-card__d">收藏夹越来越满，选择越来越难。最后要么照搬别人的行程，要么干脆躺平。</div>
+    <span class="pain-card__fix">心旅 AI：不用你拼攻略，动线直接给</span>
+  </div>
+
+  <div class="pain-card reveal">
+    <div class="pain-card__t">一天赶下来，又累又空</div>
+    <div class="pain-card__d">打卡式行程，每个点都到了，回来却发现什么也没留下。</div>
+    <span class="pain-card__fix">心旅 AI：按你的节奏排，留得住感受</span>
+  </div>
+</div>
+
+<!-- ========== 解法：先向内 ========== -->
+<div class="sec sec-solve">
+  <div class="sec-title reveal">先知道自己是谁，再去景德镇</div>
+  <div class="sec-lead reveal">快测 → 匹配 → 排线 → 校准，数据随旅程一起长</div>
+
+  <div class="step reveal">
+    <div class="step__num">1</div>
+    <div>
+      <div class="step__t">8 道情境快测 + 3 项行程安排</div>
+      <div class="step__d">选项都是「山间独处、逛夜市、拉坯手作」这类生活场景，不出现心理学术语，凭直觉选。</div>
+    </div>
+  </div>
+
+  <div class="step reveal">
+    <div class="step__num">2</div>
+    <div>
+      <div class="step__t">人格 × 场景匹配</div>
+      <div class="step__d">得出审美 / 情绪 / 社交 / 节奏四维画像，和景德镇每个场景的人文调性做匹配，附上「为什么适合你」。</div>
+    </div>
+  </div>
+
+  <div class="step reveal">
+    <div class="step__num">3</div>
+    <div>
+      <div class="step__t">可编辑的多日动线</div>
+      <div class="step__d">1–5 天，拖拽换序、从备选池替换，推荐只是起点，怎么走你说了算。</div>
+    </div>
+  </div>
+
+  <div class="step reveal">
+    <div class="step__num">4</div>
+    <div>
+      <div class="step__t">旅途中持续校准</div>
+      <div class="step__d">停留时长、快评、动线编辑，都会被记下来反哺画像，归途生成你的心灵评估报告。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 场景：再向外 ========== -->
+<div class="sec sec-scene">
+  <div class="sec-title reveal">然后，去看景德镇</div>
+  <div class="sec-lead reveal">10 个真实场景已收录 · 坐标实地校准，最高修正了 3.4km 的偏移</div>
+
+  <div class="scene-grid">
+    <div class="scene-mini reveal">
+      <div class="scene-mini__name">🏛️ 御窑博物馆</div>
+      <div class="scene-mini__desc">在碎瓷片的记忆里，触摸千年窑火</div>
+    </div>
+    <div class="scene-mini reveal">
+      <div class="scene-mini__name">🛠️ 三宝拉坯手作</div>
+      <div class="scene-mini__desc">泥土在手中旋转，和另一个自己对话</div>
+    </div>
+    <div class="scene-mini reveal">
+      <div class="scene-mini__name">🌆 陶溪川街区</div>
+      <div class="scene-mini__desc">红砖墙下，青年创意的夜市灯火</div>
+    </div>
+    <div class="scene-mini reveal">
+      <div class="scene-mini__name">🌇 昌江边落日</div>
+      <div class="scene-mini__desc">一天结束时，看天色慢慢变暗</div>
+    </div>
+  </div>
+  <p style="text-align:center; font-size:0.74rem; color:#8A7D6A; margin-top:12px;">另有古法柴窑、陶溪川夜市、抚州弄小吃等 6 个场景等你发现</p>
+</div>
+
+<!-- ========== 收尾 CTA：走向光 ========== -->
+<div class="sec sec-final">
+  <div class="final-title reveal">从心出发，走向世界</div>
+  <a href="/consent" class="btn btn-primary final-cta reveal">开启你的自我探索之旅 →</a>
+  <p class="final-note reveal">Demo · 测评约 2 分钟 · 完整体验四步闭环</p>
+</div>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- 开场：拼图碎片归位拼合 → 揭开首页 ----------
+  const mask = document.getElementById('intro-mask');
+  const introImg = document.getElementById('intro-img');
+  const slogan = document.getElementById('intro-slogan');
+  const pieces = Array.from(document.querySelectorAll('.pz'));
+  const IMG_URL = '/png/首页的加载页面.jpg';
+
+  function positionPieces() { /* 8 块位置已由 CSS 按 data-i 定义，中心格镂空 */ }
+  positionPieces();
+
+  function scatter() {
+    const vh = window.innerHeight;
+    pieces.forEach(p => {
+      const fall = vh * (0.25 + Math.random() * 0.45); // 从屏幕上方下坠
+      const rot = (Math.random() * 16 - 8);
+      p.style.transform = 'translateY(-' + fall.toFixed(0) + 'px) rotate(' + rot + 'deg)';
+      p.style.opacity = 1;
+    });
+  }
+
+  function assemble() {
+    pieces.forEach((p, i) => {
+      setTimeout(() => {
+        p.style.transition = 'transform 0.72s cubic-bezier(.2,1.35,.4,1), opacity 0.35s ease';
+        p.style.transform = 'none';
+      }, 240 + i * 120);
+    });
+    // 拼合完成：slogan 淡出 → 遮罩淡出
+    setTimeout(() => {
+      if (slogan) { slogan.style.transition = 'opacity 0.4s ease'; slogan.style.opacity = 0; }
+    }, 240 + pieces.length * 120 + 400);
+    setTimeout(() => {
+      mask.style.transition = 'opacity 0.9s ease';
+      mask.style.opacity = 0;
+      setTimeout(() => { mask.style.display = 'none'; }, 950);
+    }, 240 + pieces.length * 120 + 950);
+  }
+
+  if (reduceMotion) {
+    mask.style.display = 'none';
+  } else {
+    // 预载拼图底图，加载完成后启动
+    const img = new Image();
+    img.onload = () => { introImg.style.backgroundImage = "url('" + IMG_URL + "')"; scatter(); assemble(); };
+    img.onerror = () => { introImg.style.backgroundImage = "url('" + IMG_URL + "')"; scatter(); assemble(); };
+    img.src = IMG_URL;
+  }
+
+  // ---------- 滚动：暗 → 光 ----------
+  const dawn = document.createElement('div');
+  dawn.className = 'dawn';
+  document.body.appendChild(dawn);
+  let ticking = false;
+  function onScroll() {
+    const y = window.scrollY;
+    const vh = window.innerHeight;
+    const t = Math.min(Math.max(y / (vh * 0.85), 0), 1);
+    dawn.style.opacity = (t * 0.62).toFixed(3);
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
+  }, { passive: true });
+  onScroll();
+
+  // ---------- 滚动入场 ----------
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+<%- include('_foot') %>

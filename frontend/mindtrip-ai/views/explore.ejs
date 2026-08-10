@@ -1,0 +1,266 @@
+<%- include('_head') %>
+
+<style>
+  /* ===== 探索世界页（地图选城 · 克制游戏化） ===== */
+  .explore {
+    margin: -16px -20px 0; padding: 40px 20px 30px; min-height: 78vh;
+    background: linear-gradient(180deg, #17110B 0%, #241C13 45%, #2E241A 100%);
+    color: #EDE3D3;
+  }
+  .explore-title {
+    font-family: var(--font-display); font-size: 1.4rem; font-weight: 600;
+    text-align: center; color: #F2E9DA; letter-spacing: 0.08em;
+  }
+  .explore-sub {
+    font-size: 0.8rem; text-align: center; color: #B7A98C; margin-top: 8px;
+  }
+  .map-stage { position: relative; margin-top: 22px; }
+  #china-map { width: 100%; height: auto; display: block; }
+  #china-map .province {
+    fill: #3E3528; stroke: rgba(212,118,62,0.4); stroke-width: 0.6;
+    transition: fill 0.3s ease;
+  }
+  #china-map .province:hover { fill: #4A3D2E; }
+  /* 城市光点（SVG 内部元素，与版图同坐标系，天然同步缩放） */
+  .city-hit { cursor: pointer; }
+  .city-halo.open { fill: rgba(212,118,62,0.30); animation: haloPulse 2.2s ease-in-out infinite; }
+  .city-halo.closed { fill: rgba(122,110,93,0.20); }
+  .city-dot-svg.open { fill: #D4763E; }
+  .city-dot-svg.closed { fill: #6E6252; }
+  .city-label {
+    font-size: 11px; fill: #C9B98F; letter-spacing: 0.05em;
+    paint-order: stroke; stroke: rgba(23,17,11,0.85); stroke-width: 3px;
+    transition: fill 0.2s ease;
+  }
+  .city-hit:hover .city-label { fill: #E8A463; }
+  .city-hit:hover .city-dot-svg.open { fill: #E8935F; }
+  @keyframes haloPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .city-halo.open { animation: none; }
+  }
+  .toast {
+    position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+    background: rgba(36,29,20,0.92); color: #F2E9DA; border: 1px solid rgba(212,118,62,0.5);
+    border-radius: 999px; padding: 9px 18px; font-size: 0.8rem; z-index: 30;
+    opacity: 0; transition: opacity 0.3s ease; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  .map-dust { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .dust {
+    position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: #E8A463; opacity: 0.35; animation: dustFloat 7s ease-in-out infinite;
+  }
+  @keyframes dustFloat {
+    0%, 100% { transform: translateY(0); opacity: 0.2; }
+    50% { transform: translateY(-22px); opacity: 0.5; }
+  }
+
+  .open-city-card {
+    margin-top: 26px; background: rgba(250,246,240,0.07);
+    border: 1px solid rgba(212,118,62,0.4); border-radius: var(--radius-lg);
+    padding: 16px; text-align: center;
+  }
+  .oc-badge {
+    display: inline-block; font-size: 0.66rem; color: #E8A463;
+    border: 1px solid rgba(232,164,99,0.5); border-radius: 999px; padding: 2px 10px;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .oc-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; color: #F5EDDE; }
+  .oc-tagline { font-size: 0.85rem; color: #C9B98F; margin-top: 4px; }
+  .oc-meta { font-size: 0.72rem; color: #A99B80; margin-top: 8px; }
+  .oc-enter {
+    display: block; width: 100%; margin-top: 14px; padding: 13px 20px; font-size: 0.98rem;
+  }
+  .back-link {
+    display: block; text-align: center; margin-top: 18px;
+    font-size: 0.76rem; color: #8A7D6A; text-decoration: none;
+  }
+  .back-link:hover { color: #C9B98F; }
+</style>
+
+<div class="explore">
+  <div class="explore-title">开始探索世界</div>
+  <div class="explore-sub">先选一座城市，再出发 · 目前开放：景德镇</div>
+
+  <div class="map-stage" id="map-stage">
+    <svg id="china-map" viewBox="0 0 520 460" role="img" aria-label="中国地图，景德镇已开放"></svg>
+    <div class="map-dust" id="map-dust"></div>
+  </div>
+
+  <div class="open-city-card">
+    <div><span class="oc-badge">已开放城市</span></div>
+    <div class="oc-name">景德镇</div>
+    <div class="oc-tagline">千年窑火，从瓷到心</div>
+    <div class="oc-meta">10 个真实场景 · 手作 · 窑火 · 山野 · 夜市</div>
+    <a class="btn btn-primary oc-enter" href="/route?city=jingdezhen">进入景德镇 →</a>
+  </div>
+
+  <a class="back-link" href="/profile">← 返回我的画像</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CITIES = <%- JSON.stringify(cities) %>;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- 投影：经度按 cos(纬度) 收敛 + 纬度等距（近似中国标准地图观感） ----
+  // 先遍历全部顶点预计算投影 bounds，再归一化到 viewBox；
+  // 版图与城市光点共用同一 proj，保证绝对对齐
+  const LON0 = 105;                    // 中央经线（中国标准地图惯用）
+  const LAT_TOP = 54.0, LAT_BOT = 3.0; // 纬度范围（含南海诸岛）
+  const W = 520, H = 460;
+  let BOUNDS = null;
+
+  function rawProj(lng, lat) {
+    const latR = lat * Math.PI / 180;
+    return {
+      x: (lng - LON0) * Math.cos(latR),
+      y: LAT_TOP - lat
+    };
+  }
+  function proj(lng, lat) {
+    const r = rawProj(lng, lat);
+    if (!BOUNDS) { // 兜底：数据未就绪时线性近似
+      return {
+        x: (lng - 73.0) / 62.2 * W,
+        y: (LAT_TOP - lat) / (LAT_TOP - LAT_BOT) * H
+      };
+    }
+    return {
+      x: (r.x - BOUNDS.minX) / (BOUNDS.maxX - BOUNDS.minX) * W,
+      y: (r.y - BOUNDS.minY) / (BOUNDS.maxY - BOUNDS.minY) * H
+    };
+  }
+  function computeBounds(features) {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const visit = ring => {
+      for (const p of ring) {
+        const r = rawProj(p[0], p[1]);
+        if (r.x < minX) minX = r.x;
+        if (r.x > maxX) maxX = r.x;
+        if (r.y < minY) minY = r.y;
+        if (r.y > maxY) maxY = r.y;
+      }
+    };
+    features.forEach(f => {
+      const g = f.geometry;
+      if (!g) return;
+      const polys = g.type === 'Polygon' ? [g.coordinates] : (g.coordinates || []);
+      polys.forEach(poly => (poly || []).forEach(ring => visit(ring)));
+    });
+    BOUNDS = { minX, maxX, minY, maxY };
+  }
+
+  // ---- 版图渲染（DataV GeoAtlas 合规数据，含台湾省/南海诸岛等） ----
+  function ringToPath(ring) {
+    if (!ring || ring.length < 3) return '';
+    const stride = Math.max(1, Math.floor(ring.length / 160));
+    let d = '';
+    for (let i = 0; i < ring.length; i += stride) {
+      const p = proj(ring[i][0], ring[i][1]);
+      d += (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ' ';
+    }
+    d += 'Z';
+    return d;
+  }
+
+  async function renderMap() {
+    const svg = document.getElementById('china-map');
+    let data;
+    try {
+      const res = await fetch('/data/china.json');
+      data = await res.json();
+    } catch (e) {
+      svg.innerHTML = '<text x="260" y="230" text-anchor="middle" fill="#7A6E5D" font-size="12">地图加载失败</text>';
+      renderCities(); // 兜底：用线性近似投影仍渲染光点
+      return;
+    }
+    const features = data.features || [];
+    computeBounds(features);
+    features.forEach(f => {
+      const g = f.geometry;
+      if (!g) return;
+      const polys = g.type === 'Polygon' ? [g.coordinates] : (g.coordinates || []);
+      const paths = [];
+      polys.forEach(poly => { (poly || []).forEach(ring => { const d = ringToPath(ring); if (d) paths.push(d); }); });
+      if (paths.length) {
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', paths.join(' '));
+        p.setAttribute('class', 'province');
+        p.setAttribute('data-name', f.properties ? (f.properties.name || '') : '');
+        svg.appendChild(p);
+      }
+    });
+    renderCities(); // 省份渲染完成后放光点 → 光点位于顶层，不被省份填充遮挡
+  }
+
+  // ---- 城市光点（渲染进 SVG 内部，与版图同坐标系，随 SVG 一起缩放对齐） ----
+  function renderCities() {
+    const svg = document.getElementById('china-map');
+    const NS = 'http://www.w3.org/2000/svg';
+    CITIES.forEach(c => {
+      const p = proj(c.coords[0], c.coords[1]);
+      const isOpen = c.status === 'open';
+      const g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'city-hit');
+      const halo = document.createElementNS(NS, 'circle');
+      halo.setAttribute('cx', p.x.toFixed(1));
+      halo.setAttribute('cy', p.y.toFixed(1));
+      halo.setAttribute('r', isOpen ? 12 : 8);
+      halo.setAttribute('class', 'city-halo ' + (isOpen ? 'open' : 'closed'));
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', p.x.toFixed(1));
+      dot.setAttribute('cy', p.y.toFixed(1));
+      dot.setAttribute('r', isOpen ? 4.5 : 3.5);
+      dot.setAttribute('class', 'city-dot-svg ' + (isOpen ? 'open' : 'closed'));
+      const label = document.createElementNS(NS, 'text');
+      label.setAttribute('x', p.x.toFixed(1));
+      label.setAttribute('y', (p.y - (isOpen ? 16 : 12)).toFixed(1));
+      label.setAttribute('class', 'city-label');
+      label.setAttribute('text-anchor', 'middle');
+      label.textContent = c.name;
+      g.appendChild(halo);
+      g.appendChild(dot);
+      g.appendChild(label);
+      g.addEventListener('click', () => {
+        if (isOpen) {
+          window.location.href = '/route?city=' + c.id;
+        } else {
+          showToast(c.name + ' 正在筹备中，敬请期待');
+        }
+      });
+      svg.appendChild(g);
+    });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1600);
+  }
+
+  // ---- 浮游粒子 ----
+  function renderDust() {
+    if (reduce) return;
+    const box = document.getElementById('map-dust');
+    for (let i = 0; i < 10; i++) {
+      const s = document.createElement('span');
+      s.className = 'dust';
+      s.style.left = (8 + Math.random() * 84) + '%';
+      s.style.top = (10 + Math.random() * 80) + '%';
+      s.style.animationDelay = (Math.random() * 6).toFixed(1) + 's';
+      box.appendChild(s);
+    }
+  }
+
+  renderMap(); // 完成后内部调用 renderCities（保证光点绘制在省份之上）
+  renderDust();
+</script>
+
+<%- include('_foot') %>

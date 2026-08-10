@@ -1,0 +1,532 @@
+<%- include('_head') %>
+
+<div class="page-enter">
+  <h1 style="text-align:center;">心旅推荐 · <%= city.name %></h1>
+  <p class="text-muted text-center mb-md">为你定制的文旅动线 · <a href="/explore" style="color:var(--color-primary);">切换城市 ⇄</a></p>
+
+  <!-- 人格迷你卡片 -->
+  <div class="profile-mini fade-in">
+    <div class="profile-mini__left">
+      <span class="profile-mini__label">你的审美人格</span>
+      <span class="profile-mini__name"><%= personality.profile.name %></span>
+      <div class="profile-mini__tags">
+        <% personality.pre_tags.forEach(tag => { %>
+          <span class="tag tag--accent" style="font-size:0.65rem;"><%= tag %></span>
+        <% }) %>
+        <span class="tag tag--primary" style="font-size:0.65rem;"><%= personality.profile.preference %></span>
+      </div>
+    </div>
+    <div class="profile-mini__right">
+      <span class="profile-mini__label">心灵指数</span>
+      <div class="profile-mini__score"><%= personality.soul_score %></div>
+    </div>
+  </div>
+
+  <!-- 日期选择 -->
+  <div class="card" style="padding: 16px;">
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <div style="flex:1; min-width:140px;">
+        <label style="font-size:0.75rem; color:var(--color-text-light); display:block; margin-bottom:4px;">出发日期</label>
+        <input type="date" id="travel-date" style="width:100%; padding:8px 12px; border:1px solid #D4C8B8; border-radius:8px; font-size:0.9rem; font-family:var(--font-body); color:var(--color-text); background:#fff;">
+      </div>
+      <div style="min-width:100px;">
+        <label style="font-size:0.75rem; color:var(--color-text-light); display:block; margin-bottom:4px;">行程天数</label>
+        <select id="travel-days" onchange="onDaysChange()" style="width:100%; padding:8px 12px; border:1px solid #D4C8B8; border-radius:8px; font-size:0.9rem; font-family:var(--font-body); color:var(--color-text); background:#fff;">
+          <option value="1">1 天</option>
+          <option value="2" selected>2 天</option>
+          <option value="3">3 天</option>
+          <option value="4">4 天</option>
+          <option value="5">5 天</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 多日标签 -->
+  <div class="route-tabs mt-sm" id="day-tabs"></div>
+
+  <div id="route-desc" class="route-desc"></div>
+
+  <!-- 分层采集：行程约束适配提示 -->
+  <div id="constraint-note" class="constraint-note" style="display:none;"></div>
+
+  <!-- 地图 -->
+  <div id="map-container" class="map-container">
+    <div id="amap" style="width:100%; height:100%;"></div>
+  </div>
+
+  <!-- 当前动线（可拖拽） -->
+  <div class="mt-md" style="display:flex; align-items:center; justify-content:space-between;">
+    <h3 style="margin:0;" id="timeline-title">行程时间轴</h3>
+    <span id="edited-badge" style="display:none;" class="route-edited-badge">✏️ 已自定义</span>
+  </div>
+  <p class="text-muted" style="font-size:0.75rem; margin-top:4px;">拖拽场景卡片可交换时段，从下方备选池拖入可替换场景</p>
+  <div id="timeline-container" class="mt-sm"></div>
+
+  <!-- 备选场景池 -->
+  <div class="card mt-md">
+    <h3 style="margin-bottom: 4px;">备选场景</h3>
+    <p class="text-muted" style="font-size:0.75rem;">拖到上方时间轴可替换对应时段的场景 · 显示营业时间方便安排</p>
+    <div class="available-pool" id="available-pool"></div>
+  </div>
+</div>
+
+<% if (amapKey) { %>
+<script src="https://webapi.amap.com/maps?v=2.0&key=<%= amapKey %>&plugin=AMap.Marker,AMap.Polyline"></script>
+<% } %>
+
+<script>
+  const TIME_SLOTS = ['🌅 早晨', '🍽️ 中午', '🛠️ 下午', '🌇 傍晚', '🌙 夜晚'];
+  const amapKey = '<%= amapKey %>';
+  const CITY_ID = '<%= city.id %>';
+
+  let allScenes = {};
+  let multiDayPlan = { startDate: '', days: 2, routes: [] };
+  let currentDay = 0;
+  let map = null;
+  let markers = [];
+  let polyline = null;
+  let dragData = null;
+  let routeDataCache = { main: null, alternative: null };
+
+  // ---------- 工具函数 ----------
+  function formatDate(date) {
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
+  }
+
+  function getDayDate(dayIndex) {
+    const d = new Date(multiDayPlan.startDate);
+    d.setDate(d.getDate() + dayIndex);
+    return formatDate(d);
+  }
+
+  function getDayDateLabel(dayIndex) {
+    const d = new Date(multiDayPlan.startDate);
+    d.setDate(d.getDate() + dayIndex);
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    return `${month}/${day} 周${weekdays[d.getDay()]}`;
+  }
+
+  function getMatchingEvents(scene, dateStr) {
+    if (!scene.special_events || scene.special_events.length === 0) return [];
+    return scene.special_events.filter(e => dateStr >= e.start_date && dateStr <= e.end_date);
+  }
+
+  // ---------- 数据加载 ----------
+  async function init() {
+    // 默认明天出发
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    multiDayPlan.startDate = formatDate(tomorrow);
+    document.getElementById('travel-date').value = multiDayPlan.startDate;
+    document.getElementById('travel-date').min = formatDate(new Date());
+
+    // 并行加载所有场景 + 两条动线（按城市）
+    const [scenesRes, mainRes, altRes] = await Promise.all([
+      fetch('/api/v1/scenes?city=' + CITY_ID),
+      fetch('/api/v1/route/main?city=' + CITY_ID),
+      fetch('/api/v1/route/alternative?city=' + CITY_ID)
+    ]);
+    const scenesData = await scenesRes.json();
+    routeDataCache.main = await mainRes.json();
+    routeDataCache.alternative = altRes.ok ? await altRes.json() : null;
+
+    // 分层采集：显示行程约束适配说明
+    if (routeDataCache.main && routeDataCache.main.constraints && routeDataCache.main.constraints.note) {
+      const noteEl = document.getElementById('constraint-note');
+      noteEl.textContent = routeDataCache.main.constraints.note;
+      noteEl.style.display = '';
+    }
+
+    allScenes = {};
+    scenesData.scenes.forEach(s => { allScenes[s.id] = s; });
+
+    rebuildMultiDayPlan();
+  }
+
+  function rebuildMultiDayPlan() {
+    const days = multiDayPlan.days;
+    multiDayPlan.routes = [];
+
+    for (let i = 0; i < days; i++) {
+      if (i === 0 && routeDataCache.main) {
+        multiDayPlan.routes.push(routeDataCache.main.timeline.map(n => n.id));
+      } else if (i === 1 && routeDataCache.alternative) {
+        multiDayPlan.routes.push(routeDataCache.alternative.timeline.map(n => n.id));
+      } else {
+        // Day 3+: 从未使用过的场景中选5个
+        const used = multiDayPlan.routes.flat();
+        const unused = Object.keys(allScenes).filter(id => !used.includes(id));
+        const dayRoute = [];
+        for (let j = 0; j < 5; j++) {
+          if (unused.length > 0) {
+            dayRoute.push(unused.shift());
+          } else {
+            // 所有场景都用过了，从全部场景中选
+            const allIds = Object.keys(allScenes);
+            const candidate = allIds.find(id => !dayRoute.includes(id));
+            if (candidate) dayRoute.push(candidate);
+          }
+        }
+        multiDayPlan.routes.push(dayRoute);
+      }
+    }
+
+    currentDay = 0;
+    renderDayTabs();
+    renderAll();
+  }
+
+  function onDaysChange() {
+    multiDayPlan.days = parseInt(document.getElementById('travel-days').value);
+    rebuildMultiDayPlan();
+  }
+
+  document.getElementById('travel-date').addEventListener('change', function() {
+    multiDayPlan.startDate = this.value;
+    renderDayTabs();
+    renderAll();
+  });
+
+  // ---------- 渲染 ----------
+  function renderDayTabs() {
+    const container = document.getElementById('day-tabs');
+    container.innerHTML = multiDayPlan.routes.map((route, i) => {
+      const dateLabel = getDayDateLabel(i);
+      return `<button class="route-tab ${i === currentDay ? 'route-tab--active' : ''}"
+                      onclick="switchDay(${i})">
+        Day ${i + 1} · ${dateLabel}
+      </button>`;
+    }).join('');
+  }
+
+  function renderAll() {
+    renderTimeline();
+    renderAvailable();
+    renderMap();
+    updateTitle();
+  }
+
+  function updateTitle() {
+    const dateStr = getDayDate(currentDay);
+    document.getElementById('timeline-title').textContent = `Day ${currentDay + 1} 行程时间轴 · ${getDayDateLabel(currentDay)}`;
+    document.getElementById('edited-badge').style.display = 'none';
+
+    // 动线描述
+    let desc = '';
+    if (currentDay === 0 && routeDataCache.main) {
+      desc = routeDataCache.main.desc;
+    } else if (currentDay === 1 && routeDataCache.alternative) {
+      desc = routeDataCache.alternative.desc;
+    } else {
+      desc = `第 ${currentDay + 1} 天的行程，由系统从备选场景中为你编排。可自由拖拽调整。`;
+    }
+    document.getElementById('route-desc').textContent = desc;
+  }
+
+  function getCurrentTimeline() {
+    return multiDayPlan.routes[currentDay] || [];
+  }
+
+  function setCurrentTimeline(timeline) {
+    multiDayPlan.routes[currentDay] = timeline;
+  }
+
+  function renderTimeline() {
+    const timeline = getCurrentTimeline();
+    const dateStr = getDayDate(currentDay);
+    const container = document.getElementById('timeline-container');
+
+    container.innerHTML = `
+      <div class="timeline">
+        ${timeline.map((sceneId, i) => {
+          const scene = allScenes[sceneId];
+          if (!scene) return '';
+          const crowdClass = scene.crowd_level === '低' ? 'crowd-low' :
+                            scene.crowd_level === '中' ? 'crowd-medium' : 'crowd-high';
+          const events = getMatchingEvents(scene, dateStr);
+          return `
+            <div class="timeline-item timeline-item--draggable fade-in-up"
+                 draggable="true"
+                 data-index="${i}"
+                 ondragstart="onDragStart(event, ${i}, 'timeline')"
+                 ondragend="onDragEnd(event)"
+                 ondragover="onDragOver(event)"
+                 ondragleave="onDragLeave(event)"
+                 ondrop="onDrop(event, ${i}, 'timeline')"
+                 style="animation-delay: ${i * 0.08}s;">
+              <div class="timeline-dot">${i + 1}</div>
+              <span class="drag-handle">⠿ 拖拽调整</span>
+              <div class="timeline-time">${TIME_SLOTS[i]}</div>
+              <a href="/scene/${scene.id}" style="text-decoration:none; color:inherit;">
+                <div class="timeline-name">${scene.emoji || ''} ${scene.name}</div>
+              </a>
+              <div class="timeline-desc">${scene.poetic_desc}</div>
+              <div style="margin-top: 6px; font-size: 0.72rem; color: var(--color-primary); display:flex; align-items:center; gap:4px;">
+                🕐 营业: ${scene.business_hours || '全天'}
+              </div>
+              <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                <span class="tag ${crowdClass}" style="font-size:0.7rem;">人流: ${scene.crowd_level}</span>
+                <span class="tag tag--primary" style="font-size:0.7rem;">${scene.type}</span>
+                ${scene.time_limited ? `<span class="tag tag--accent" style="font-size:0.65rem;">${scene.time_limited}</span>` : ''}
+              </div>
+              ${events.length > 0 ? events.map(e => `
+                <div style="margin-top: 8px; padding: 8px 12px; background: linear-gradient(135deg, #FFF3EB, #FFE8D6); border-radius: 8px; border-left: 3px solid var(--color-accent);">
+                  <div style="font-size: 0.8rem; font-weight: 600; color: var(--color-accent);">🎉 ${e.name}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-text); margin-top: 2px;">${e.desc}</div>
+                  <div style="font-size: 0.65rem; color: var(--color-text-light); margin-top: 2px;">📅 ${e.start_date} ~ ${e.end_date} · ${e.location}</div>
+                </div>
+              `).join('') : ''}
+              <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <a href="${scene.nav_url}" target="_blank" class="amap-nav-btn">
+                  <span class="amap-dot"></span>高德导航 →
+                </a>
+                <a href="/scene/${scene.id}" class="btn btn-outline btn-small">详情</a>
+              </div>
+              <div class="mobile-controls">
+                <button onclick="moveUp(${i})" ${i === 0 ? 'disabled' : ''} title="上移">↑</button>
+                <button onclick="moveDown(${i})" ${i === timeline.length - 1 ? 'disabled' : ''} title="下移">↓</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function renderAvailable() {
+    const currentTimeline = getCurrentTimeline();
+    const availableIds = Object.keys(allScenes).filter(id => !currentTimeline.includes(id));
+    const container = document.getElementById('available-pool');
+
+    if (availableIds.length === 0) {
+      container.innerHTML = '<div class="available-empty">所有场景已在当日行程中</div>';
+      return;
+    }
+
+    const dateStr = getDayDate(currentDay);
+
+    container.innerHTML = availableIds.map(id => {
+      const scene = allScenes[id];
+      const events = getMatchingEvents(scene, dateStr);
+      return `
+        <div class="available-card"
+             draggable="true"
+             data-scene-id="${id}"
+             ondragstart="onDragStart(event, '${id}', 'available')"
+             ondragend="onDragEnd(event)"
+             ondragover="onDragOver(event)"
+             ondragleave="onDragLeave(event)"
+             ondrop="onDrop(event, '${id}', 'available')">
+          <span class="available-card__type">${scene.type}</span>
+          ${events.length > 0 ? '<span class="available-card__type" style="background:#FFF3EB; color:var(--color-accent);">🎉 有活动</span>' : ''}
+          <div class="available-card__name">${scene.emoji || ''} ${scene.name}</div>
+          <div style="font-size:0.65rem; color:var(--color-primary); margin:2px 0;">🕐 ${scene.business_hours || '全天'}</div>
+          ${scene.fit_reason ? `<div style="font-size:0.65rem; color:var(--color-accent); margin-top:2px;">${scene.fit_reason}</div>` : ''}
+          <div class="available-card__desc">${scene.poetic_desc.substring(0, 28)}...</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 等待高德地图 JS 加载完成（脚本同步加载，但 init 执行时插件可能尚未就绪）
+  function waitForAMap(timeoutMs = 5000) {
+    return new Promise((resolve) => {
+      if (typeof AMap !== 'undefined' && AMap.Map) return resolve(true);
+      const startedAt = Date.now();
+      const timer = setInterval(() => {
+        if (typeof AMap !== 'undefined' && AMap.Map) {
+          clearInterval(timer);
+          resolve(true);
+        } else if (Date.now() - startedAt > timeoutMs) {
+          clearInterval(timer);
+          resolve(false); // 超时降级 SVG 示意地图
+        }
+      }, 150);
+    });
+  }
+
+  async function renderMap() {
+    const timeline = getCurrentTimeline().map((id, i) => ({
+      ...allScenes[id],
+      order: i + 1
+    })).filter(s => s.id);
+
+    const amapReady = await waitForAMap();
+    if (amapReady) {
+      // 若之前降级过 SVG，先恢复 #amap 容器
+      let amapEl = document.getElementById('amap');
+      if (!amapEl) {
+        const container = document.getElementById('map-container');
+        container.innerHTML = '<div id="amap" style="width:100%; height:100%;"></div>';
+      }
+      renderAMap(timeline);
+    } else {
+      renderSVGMap(timeline);
+    }
+  }
+
+  // ---------- 拖拽逻辑 ----------
+  function onDragStart(event, indexOrId, source) {
+    dragData = { source, indexOrId };
+    event.dataTransfer.effectAllowed = 'move';
+    event.target.closest('.timeline-item, .available-card')?.classList.add('timeline-item--dragging', 'available-card--dragging');
+  }
+
+  function onDragEnd(event) {
+    event.target.closest('.timeline-item, .available-card')?.classList.remove('timeline-item--dragging', 'available-card--dragging');
+    document.querySelectorAll('.timeline-item--drag-over').forEach(el => el.classList.remove('timeline-item--drag-over'));
+  }
+
+  function onDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    event.currentTarget.classList.add('timeline-item--drag-over');
+  }
+
+  function onDragLeave(event) {
+    event.currentTarget.classList.remove('timeline-item--drag-over');
+  }
+
+  function onDrop(event, targetIndexOrId, target) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('timeline-item--drag-over');
+    if (!dragData) return;
+
+    const timeline = getCurrentTimeline();
+
+    if (dragData.source === 'timeline' && target === 'timeline') {
+      const fromIdx = dragData.indexOrId;
+      const toIdx = targetIndexOrId;
+      if (fromIdx === toIdx) return;
+      [timeline[fromIdx], timeline[toIdx]] = [timeline[toIdx], timeline[fromIdx]];
+      markEdited('reorder', { from_idx: fromIdx, to_idx: toIdx });
+    } else if (dragData.source === 'available' && target === 'timeline') {
+      const newSceneId = dragData.indexOrId;
+      const targetIdx = targetIndexOrId;
+      const oldSceneId = timeline[targetIdx];
+      timeline[targetIdx] = newSceneId;
+      markEdited('replace', { to_idx: targetIdx, scene_in: newSceneId, scene_out: oldSceneId });
+    }
+
+    setCurrentTimeline(timeline);
+    dragData = null;
+    renderAll();
+  }
+
+  function moveUp(idx) {
+    if (idx === 0) return;
+    const timeline = getCurrentTimeline();
+    [timeline[idx - 1], timeline[idx]] = [timeline[idx], timeline[idx - 1]];
+    setCurrentTimeline(timeline);
+    markEdited('reorder', { from_idx: idx, to_idx: idx - 1 });
+    renderAll();
+  }
+
+  function moveDown(idx) {
+    const timeline = getCurrentTimeline();
+    if (idx === timeline.length - 1) return;
+    [timeline[idx], timeline[idx + 1]] = [timeline[idx + 1], timeline[idx]];
+    setCurrentTimeline(timeline);
+    markEdited('reorder', { from_idx: idx, to_idx: idx + 1 });
+    renderAll();
+  }
+
+  // 分层采集：动线编辑行为 → 落盘并反哺画像（隐式问卷）
+  async function markEdited(action, payload) {
+    document.getElementById('edited-badge').style.display = '';
+    try {
+      await fetch('/api/v1/route/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, day_index: currentDay, ...(payload || {}) })
+      });
+    } catch (e) {
+      // 记录失败不阻塞交互
+    }
+  }
+
+  function switchDay(dayIndex) {
+    currentDay = dayIndex;
+    renderDayTabs();
+    renderAll();
+  }
+
+  // ---------- 地图渲染 ----------
+  function renderAMap(timeline) {
+    const center = timeline.length > 0 ? timeline[0].coords : [117.21, 29.28];
+
+    if (!map) {
+      map = new AMap.Map('amap', {
+        zoom: 12,
+        center: center,
+        mapStyle: 'amap://styles/whitesmoke'
+      });
+    } else {
+      map.clearMap();
+    }
+
+    markers = timeline.map((node, i) => {
+      const marker = new AMap.Marker({
+        position: node.coords,
+        title: node.name,
+        label: {
+          content: `<div style="font-size:11px; font-weight:600; color:#8B6F47; background:#FAF6F0; padding:2px 8px; border-radius:10px; border:1px solid #C4A77D;">${i + 1}. ${node.name}</div>`,
+          direction: 'top'
+        }
+      });
+      marker.on('click', () => { window.location.href = '/scene/' + node.id; });
+      map.add(marker);
+      return marker;
+    });
+
+    const path = timeline.map(node => node.coords);
+    if (path.length > 1) {
+      polyline = new AMap.Polyline({
+        path: path,
+        borderWeight: 2,
+        strokeColor: '#8B6F47',
+        strokeOpacity: 0.8,
+        strokeWeight: 3,
+        strokeStyle: 'dashed',
+        lineJoin: 'round',
+        lineCap: 'round'
+      });
+      map.add(polyline);
+    }
+    map.setFitView();
+  }
+
+  function renderSVGMap(timeline) {
+    const container = document.getElementById('map-container');
+    container.innerHTML = `
+      <svg viewBox="0 0 400 300" style="width:100%; height:100%; background:#F0EBE3;">
+        <path d="M 50 50 Q 100 40 150 60 T 250 80 Q 300 90 350 70" fill="none" stroke="#B8D4E3" stroke-width="3" opacity="0.5"/>
+        <text x="20" y="150" font-size="10" fill="#A0937E" font-family="Noto Sans SC">珠山区·老城</text>
+        <text x="280" y="250" font-size="10" fill="#A0937E" font-family="Noto Sans SC">三宝村</text>
+        ${timeline.map((node, i) => {
+          const x = 60 + (i * 70);
+          const y = 100 + (i * 35);
+          return `
+            <circle cx="${x}" cy="${y}" r="14" fill="#8B6F47" stroke="#fff" stroke-width="2"/>
+            <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">${i + 1}</text>
+            <text x="${x}" y="${y + 28}" text-anchor="middle" font-size="8" fill="#3E3528" font-family="Noto Sans SC">${node.name.substring(0, 6)}</text>
+            ${i < timeline.length - 1 ? `
+              <path d="M ${x} ${y} Q ${(x + 35)} ${(y + 10)} ${(x + 70)} ${(y + 35)}"
+                    fill="none" stroke="#C4A77D" stroke-width="1.5" stroke-dasharray="4,3"/>
+            ` : ''}
+          `;
+        }).join('')}
+        <text x="200" y="290" text-anchor="middle" font-size="9" fill="#A0937E">景德镇 · 示意图${amapKey ? '' : '（配置高德Key后显示真实地图）'}</text>
+      </svg>
+    `;
+  }
+
+  // 启动
+  init();
+</script>
+
+<%- include('_foot') %>
