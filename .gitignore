@@ -20,3 +20,7 @@ Thumbs.db
 # Env
 .env
 .env.local
+
+# 打包物（防止带密钥/依赖的 zip 入库）
+*.zip
+*.tar.gz
