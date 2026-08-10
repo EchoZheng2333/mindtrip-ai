@@ -2,12 +2,52 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心旅 AI — MindTrip AI</title>
+    <meta name="description" content="心旅 AI - 寻回内心的旅行，AI 驱动的个性化旅行规划" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              wabi: { 50: '#FBF9F5', 100: '#F4F1EA', 200: '#E8E3D8', 300: '#D4CDBC', 400: '#B8AD96', 500: '#9C8E72' },
+              'ink': { dark: '#1C1C1E', retro: '#2C3A2E' },
+              'cute': { pop: '#E63946', light: '#FF6B7A', dark: '#C62828' },
+            },
+            fontFamily: {
+              serif: ['Georgia', 'Noto Serif SC', 'serif'],
+              sans: ['Inter', 'Arial', 'sans-serif'],
+            },
+            animation: {
+              'breathe': 'breathe 4s ease-in-out infinite',
+              'fade-in': 'fadeIn 0.6s ease-out',
+              'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+              'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+            },
+            keyframes: {
+              breathe: { '0%, 100%': { transform: 'scale(1)', opacity: '1' }, '50%': { transform: 'scale(1.01)', opacity: '0.97' } },
+              fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              slideUp: { '0%': { transform: 'translateY(30px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+              pulseGlow: { '0%, 100%': { boxShadow: '0 0 20px rgba(230, 57, 70, 0.1)' }, '50%': { boxShadow: '0 0 40px rgba(230, 57, 70, 0.3)' } },
+            },
+          },
+        },
+      }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <div id="app"></div>
+    <script type="module" src="/src/app.js"></script>
   </body>
 </html>
