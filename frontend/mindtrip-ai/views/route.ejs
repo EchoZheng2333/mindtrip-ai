@@ -82,6 +82,30 @@
   .tl-meta .crowd-high { color: #A32D2D; }
   .tl-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .tl-actions .drag-handle { margin-left: auto; font-size: 0.66rem; color: #A0937E; }
+
+  /* ===== 打卡状态：已打卡场景的差异化显示 ===== */
+  .badge-checked {
+    display: inline-block; vertical-align: middle;
+    background: #F5E9C8; color: #8B6914; border: 1px solid #E0C879;
+    border-radius: 999px; padding: 2px 9px; font-size: 0.66rem; font-weight: 600;
+  }
+  .timeline-item--checked { opacity: 0.88; }
+  .timeline-item--checked .timeline-name { color: #8A7D6A; }
+  .timeline-item--checked .timeline-thumb img { filter: saturate(0.55) brightness(1.05); }
+  .timeline-thumb { position: relative; }
+  .thumb-badge {
+    position: absolute; top: 6px; left: 6px; z-index: 2;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(139,105,20,0.92); color: #fff; font-size: 0.74rem;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .checkin-progress {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.72rem; color: #8B6914; background: #F8F1DC;
+    border: 1px solid #E8D9A8; border-radius: 999px; padding: 3px 12px;
+    white-space: nowrap;
+  }
 </style>
 
 <div class="page-enter">
@@ -153,9 +177,12 @@
   <div id="budget-card"></div>
 
   <!-- 当前动线（可拖拽） -->
-  <div class="mt-md" style="display:flex; align-items:center; justify-content:space-between;">
+  <div class="mt-md" style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
     <h3 style="margin:0;" id="timeline-title">行程时间轴</h3>
-    <span id="edited-badge" style="display:none;" class="route-edited-badge">✏️ 已自定义</span>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span id="checkin-progress" class="checkin-progress" style="display:none;"></span>
+      <span id="edited-badge" style="display:none;" class="route-edited-badge">✏️ 已自定义</span>
+    </div>
   </div>
   <p class="text-muted" style="font-size:0.75rem; margin-top:4px;">拖拽场景卡片可交换时段，从下方备选池拖入可替换场景</p>
   <div id="timeline-container" class="mt-sm"></div>
@@ -356,6 +383,17 @@
     document.getElementById('timeline-title').textContent = `Day ${currentDay + 1} 行程时间轴 · ${getDayDateLabel(currentDay)}`;
     document.getElementById('edited-badge').style.display = 'none';
 
+    // 打卡进度：当前日已打卡 x/y（强化"旅途中持续校准"叙事）
+    const prog = document.getElementById('checkin-progress');
+    const timeline = getCurrentTimeline();
+    if (timeline && timeline.length > 0) {
+      const done = timeline.filter(id => allScenes[id] && allScenes[id].checked_in).length;
+      prog.textContent = '✅ 已打卡 ' + done + ' / ' + timeline.length;
+      prog.style.display = done > 0 ? '' : 'none';
+    } else {
+      prog.style.display = 'none';
+    }
+
     // 动线描述
     let desc = '';
     if (currentDay === 0 && routeDataCache.main) {
@@ -390,7 +428,7 @@
                             scene.crowd_level === '中' ? 'crowd-medium' : 'crowd-high';
           const events = getMatchingEvents(scene, dateStr);
           return `
-            <div class="timeline-item timeline-item--draggable fade-in-up"
+            <div class="timeline-item timeline-item--draggable fade-in-up${scene.checked_in ? ' timeline-item--checked' : ''}"
                  draggable="true"
                  data-index="${i}"
                  data-scene-id="${scene.id}"
@@ -402,6 +440,7 @@
                  style="animation-delay: ${i * 0.08}s;">
               ${scene.image ? `
                 <div class="timeline-thumb">
+                  ${scene.checked_in ? '<span class="thumb-badge">✓</span>' : ''}
                   <img src="${scene.image}" alt="${scene.name}" loading="lazy"
                        onerror="this.parentNode.style.display='none'">
                 </div>
@@ -409,11 +448,12 @@
               <div class="timeline-dot">${i + 1}</div>
               <div class="timeline-time">${TIME_SLOTS[i]}</div>
 
-              <!-- 主信息：名称 + 类型 -->
+              <!-- 主信息：名称 + 打卡徽标 + 类型 -->
               <div class="tl-head">
                 <a href="/scene/${scene.id}" style="text-decoration:none; color:inherit;">
                   <div class="timeline-name">${scene.name}</div>
                 </a>
+                ${scene.checked_in ? '<span class="badge-checked">✓ 已打卡</span>' : ''}
                 <span class="tag tag--primary tl-type">${scene.type}</span>
                 ${scene.time_limited ? `<span class="tag tag--accent tl-limit">${scene.time_limited}</span>` : ''}
               </div>
@@ -485,6 +525,7 @@
              ondragleave="onDragLeave(event)"
              ondrop="onDrop(event, '${id}', 'available')">
           <span class="available-card__type">${scene.type}</span>
+          ${scene.checked_in ? '<span class="available-card__type" style="background:#F5E9C8; color:#8B6914;">✓ 已打卡</span>' : ''}
           ${events.length > 0 ? '<span class="available-card__type" style="background:#FFF3EB; color:var(--color-accent);">🎉 有活动</span>' : ''}
           <div class="available-card__name">${scene.emoji || ''} ${scene.name}</div>
           <div style="font-size:0.65rem; color:var(--color-primary); margin:2px 0;">🕐 ${scene.business_hours || '全天'}</div>
