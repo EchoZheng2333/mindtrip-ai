@@ -68,18 +68,40 @@
   .timeline-dot { left: -32px; }
   .timeline-time {
     position: absolute;
-    left: -120px;        /* 定位到左侧时间列 */
-    top: 6px;
-    width: 84px;
+    left: -118px;        /* 定位到左侧时间列 */
+    top: 50%;
+    transform: translateY(-50%);  /* 垂直居中于卡片，消除"悬空缺块" */
+    width: 92px;
     text-align: right;
     margin-bottom: 0;
-    font-size: 0.78rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--color-accent);
     line-height: 1.4;
   }
+
+  /* ===== 行程卡片信息层级：主信息 → 实用信息 → 深度文案 ===== */
+  .tl-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tl-name { display: block; }
+  .tl-type { font-size: 0.66rem !important; }
+  .tl-limit { font-size: 0.64rem !important; }
+  .tl-meta {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-size: 0.72rem; color: #8A7D6A; margin-top: 6px;
+  }
+  .tl-meta .crowd-low { color: #639922; }
+  .tl-meta .crowd-medium { color: #BA7517; }
+  .tl-meta .crowd-high { color: #A32D2D; }
+  .tl-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .tl-actions .drag-handle { margin-left: auto; font-size: 0.66rem; color: #A0937E; }
+
   @media (max-width: 480px) {
     .timeline { padding-left: 32px; }
     .timeline-time {
       position: static;
+      transform: none;
+      top: auto;
+      left: auto;
       text-align: left;
       margin-bottom: 4px;
       width: auto;
@@ -176,7 +198,8 @@
 <% } %>
 
 <script>
-  const TIME_SLOTS = ['🌅 早晨', '🍽️ 中午', '🛠️ 下午', '🌇 傍晚', '🌙 夜晚'];
+  const TIME_SLOTS = ['早晨', '中午', '下午', '傍晚', '夜晚'];
+  const PRICE_LABEL = { 低: '亲民', 中: '适中', 高: '品质' };
   const amapKey = '<%= amapKey %>';
   const CITY_ID = '<%= city.id %>';
 
@@ -409,23 +432,32 @@
                 </div>
               ` : ''}
               <div class="timeline-dot">${i + 1}</div>
-              <span class="drag-handle">⠿ 拖拽调整</span>
               <div class="timeline-time">${TIME_SLOTS[i]}</div>
-              <a href="/scene/${scene.id}" style="text-decoration:none; color:inherit;">
-                <div class="timeline-name">${scene.emoji || ''} ${scene.name}</div>
-              </a>
-              <div class="timeline-desc">${scene.poetic_desc}</div>
+
+              <!-- 主信息：名称 + 类型 -->
+              <div class="tl-head">
+                <a href="/scene/${scene.id}" style="text-decoration:none; color:inherit;">
+                  <div class="timeline-name">${scene.name}</div>
+                </a>
+                <span class="tag tag--primary tl-type">${scene.type}</span>
+                ${scene.time_limited ? `<span class="tag tag--accent tl-limit">${scene.time_limited}</span>` : ''}
+              </div>
+
+              <!-- 实用信息：营业 / 人流 / 预算 -->
+              <div class="tl-meta">
+                <span>🕐 ${scene.business_hours || '全天'}</span>
+                <span>·</span>
+                <span class="${crowdClass}">人流 ${scene.crowd_level}</span>
+                <span>·</span>
+                <span>预算 ${PRICE_LABEL[scene.price_level] || scene.price_level}</span>
+              </div>
+
+              <!-- 深度文案：诗意描述 + 为什么适合你 -->
+              <div class="timeline-desc" style="margin-top: 6px;">${scene.poetic_desc}</div>
               ${scene.why_fit ? `
                 <div class="why-fit" data-why-fit="${scene.id}">${scene.why_fit}</div>
               ` : ''}
-              <div style="margin-top: 6px; font-size: 0.72rem; color: var(--color-primary); display:flex; align-items:center; gap:4px;">
-                🕐 营业: ${scene.business_hours || '全天'}
-              </div>
-              <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                <span class="tag ${crowdClass}" style="font-size:0.7rem;">人流: ${scene.crowd_level}</span>
-                <span class="tag tag--primary" style="font-size:0.7rem;">${scene.type}</span>
-                ${scene.time_limited ? `<span class="tag tag--accent" style="font-size:0.65rem;">${scene.time_limited}</span>` : ''}
-              </div>
+
               ${events.length > 0 ? events.map(e => `
                 <div style="margin-top: 8px; padding: 8px 12px; background: linear-gradient(135deg, #FFF3EB, #FFE8D6); border-radius: 8px; border-left: 3px solid var(--color-accent);">
                   <div style="font-size: 0.8rem; font-weight: 600; color: var(--color-accent);">🎉 ${e.name}</div>
@@ -433,11 +465,14 @@
                   <div style="font-size: 0.65rem; color: var(--color-text-light); margin-top: 2px;">📅 ${e.start_date} ~ ${e.end_date} · ${e.location}</div>
                 </div>
               `).join('') : ''}
-              <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+
+              <!-- 操作区 -->
+              <div class="tl-actions">
                 <a href="${scene.nav_url}" target="_blank" class="amap-nav-btn">
                   <span class="amap-dot"></span>高德导航 →
                 </a>
                 <a href="/scene/${scene.id}" class="btn btn-outline btn-small">详情</a>
+                <span class="drag-handle">⠿ 拖拽调整</span>
               </div>
               <div class="mobile-controls">
                 <button onclick="moveUp(${i})" ${i === 0 ? 'disabled' : ''} title="上移">↑</button>
