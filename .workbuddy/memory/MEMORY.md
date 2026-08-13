@@ -7,7 +7,8 @@
 
 ## 密钥安全
 - **`.env.example` 只放占位符**（`sk-xxx...` / `xxx...`），真实 key 只存 `.env`（已被 .gitignore 排除）。
-- 2026-08-12 曾发生 .env.example 含真实 DeepSeek/高德 key 入库（提交 c59a065），已用 filter-branch 重写历史清除并推送；**echo 需在 DeepSeek/高德后台轮换这两个 key**（旧 key 曾明文存在本地历史）。
+- 2026-08-12 曾发生 .env.example 含真实 DeepSeek/高德 key 入库（提交 c59a065），已用 filter-branch 重写历史清除并推送。**2026-08-13 双 key 已轮换完成**（DeepSeek 新 key、高德 AMAP_WEB_KEY Web服务 + AMAP_KEY JS API 双 key 配置）。
+- 高德一个 Key 只能绑定一个平台类型：地图用「Web端(JS API)」`AMAP_KEY`，天气/POI 用「Web服务」`AMAP_WEB_KEY`，两个都要配。
 - 推送前若遇 GitHub Push Protection 拦截，先查是否 .env* 泄露。
 
 ## 项目方向（2026-08-12 需求对齐确认）
