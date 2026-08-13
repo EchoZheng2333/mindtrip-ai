@@ -132,6 +132,32 @@
     border: 1px solid #E8D9A8; border-radius: 999px; padding: 3px 12px;
     white-space: nowrap;
   }
+
+  /* ===== 高德地图：瓷片式 Marker + 胶囊标签 ===== */
+  .amap-marker {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #FFFDF9; border: 2px solid #8B6F47;
+    color: #8B6F47; font-size: 0.76rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(62,53,40,0.35);
+    font-family: var(--font-display);
+    transition: transform 0.2s ease;
+  }
+  .amap-marker:hover { transform: scale(1.12); }
+  .amap-marker--done {
+    background: linear-gradient(135deg, #D4763E, #B55A26);
+    border-color: #FFFDF9; color: #FFF;
+    box-shadow: 0 2px 10px rgba(212,118,62,0.55);
+  }
+  .amap-marker-label {
+    font-size: 11px; font-weight: 600; color: #5C4B33;
+    background: #FFFDF9; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid #C4A77D; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    white-space: nowrap;
+  }
+  .amap-marker-label--done {
+    color: #8B6914; background: #F8F1DC; border-color: #E0C879;
+  }
 </style>
 
 <div class="page-enter">
@@ -824,11 +850,19 @@
     }
 
     markers = timeline.map((node, i) => {
+      // 瓷片式 Marker：白瓷圆点 + 暖金描边 + 序号；已打卡点位用金色实心（呼应翻转卡）
+      const checked = !!(allScenes[node.id] && allScenes[node.id].checked_in);
+      const markerHtml = `
+        <div class="amap-marker${checked ? ' amap-marker--done' : ''}">
+          ${checked ? '✓' : (i + 1)}
+        </div>`;
       const marker = new AMap.Marker({
         position: node.coords,
         title: node.name,
+        content: markerHtml,
+        offset: new AMap.Pixel(-14, -14),
         label: {
-          content: `<div style="font-size:11px; font-weight:600; color:#8B6F47; background:#FAF6F0; padding:2px 8px; border-radius:10px; border:1px solid #C4A77D;">${i + 1}. ${node.name}</div>`,
+          content: `<div class="amap-marker-label${checked ? ' amap-marker-label--done' : ''}">${node.name}</div>`,
           direction: 'top'
         }
       });
@@ -841,11 +875,12 @@
     if (path.length > 1) {
       polyline = new AMap.Polyline({
         path: path,
-        borderWeight: 2,
-        strokeColor: '#8B6F47',
-        strokeOpacity: 0.8,
-        strokeWeight: 3,
-        strokeStyle: 'dashed',
+        borderWeight: 1,
+        borderColor: '#FFFDF9',
+        strokeColor: '#C0894A',
+        strokeOpacity: 0.95,
+        strokeWeight: 4,
+        strokeStyle: 'solid',
         lineJoin: 'round',
         lineCap: 'round'
       });
