@@ -162,7 +162,7 @@
         <a href="${s.nav_url}" target="_blank" class="btn btn-outline" style="flex:1;">
           🧭 导航
         </a>
-        <a href="/route" class="btn btn-outline" style="flex:1;" onclick="leaveToRoute(); return false;">
+        <a href="/route?city=${s.city || 'jingdezhen'}" class="btn btn-outline" style="flex:1;" onclick="leaveToRoute(); return false;">
           ← 返回动线
         </a>
       </div>
@@ -249,7 +249,7 @@
           <p style="font-size: 0.9rem; color: var(--color-text);">${data.message}</p>
           ${stayMinutes > 0 ? `<p class="text-muted mt-xs" style="font-size: 0.75rem;">已记录停留 ${stayMinutes} 分钟</p>` : ''}
         </div>
-        <a href="/route" class="btn btn-outline mt-sm" style="width:100%;" onclick="leaveToRoute(); return false;">
+        <a href="/route?city=${s.city || 'jingdezhen'}" class="btn btn-outline mt-sm" style="width:100%;" onclick="leaveToRoute(); return false;">
           ← 继续心旅
         </a>
         <a href="/return" class="btn btn-primary mt-sm" style="width:100%;">
@@ -267,7 +267,9 @@
     setTimeout(() => { if (callback) callback(); }, 1500);
   }
   function leaveToRoute() {
-    showTravelTransition(() => { window.location.href = '/route'; });
+    // 返回动线必须带城市参数，否则 /route 会兜底重定向到选城页
+    const city = (sceneData && sceneData.city) ? sceneData.city : 'jingdezhen';
+    showTravelTransition(() => { window.location.href = '/route?city=' + city; });
   }
 
   async function doLeave() {
