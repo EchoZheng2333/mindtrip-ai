@@ -134,17 +134,6 @@
   }
 
   /* ===== 高德地图：Marker 使用 SVG 图标（见 makeMarkerIcon），无额外 CSS ===== */
-  /* 点位名称标签（轻量胶囊，只显示名称） */
-  .amap-marker-label {
-    font-size: 11px; font-weight: 600; color: #5C4B33;
-    background: rgba(255,253,249,0.92); padding: 2px 9px; border-radius: 999px;
-    border: 1px solid rgba(196,167,125,0.6);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    white-space: nowrap;
-  }
-  .amap-marker-label--done {
-    color: #8B6914; background: rgba(248,241,220,0.94); border-color: rgba(224,200,121,0.8);
-  }
 </style>
 
 <div class="page-enter">
@@ -874,12 +863,7 @@
         position: node.coords,
         title: node.name,   // hover 显示名称（浏览器原生 tooltip）
         icon: makeMarkerIcon(i + 1, checked),
-        anchor: 'center',
-        // 常驻名称标签：只显示名称（不带序号，避免与圆点序号重复；密集点位可缩放查看）
-        label: {
-          content: `<div class="amap-marker-label${checked ? ' amap-marker-label--done' : ''}">${node.name}</div>`,
-          direction: 'top'
-        }
+        anchor: 'center'
       });
       marker.on('click', () => { window.location.href = '/scene/' + node.id; });
       map.add(marker);
