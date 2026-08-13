@@ -23,6 +23,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+// 本地第三方库（html2canvas 等）：避免演示现场依赖 CDN
+app.use('/vendor', express.static(path.join(__dirname, 'node_modules', 'html2canvas', 'dist')));
 
 // Session 配置（JSON 文件持久化）
 app.use(session({

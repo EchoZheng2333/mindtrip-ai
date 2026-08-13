@@ -40,6 +40,21 @@
   }
   .stagger.in { opacity: 1; transform: none; }
 
+  /* ===== 人格名逐字浮现（惊喜点强化） ===== */
+  .profile-name {
+    animation: nameReveal 1.15s cubic-bezier(.2,.7,.2,1) 0.3s both;
+  }
+  @keyframes nameReveal {
+    0% { opacity: 0; letter-spacing: 0.32em; filter: blur(7px); }
+    65% { opacity: 1; filter: blur(0); }
+    100% { opacity: 1; letter-spacing: 0.06em; }
+  }
+
+  /* ===== 心灵指数圆环辉光 ===== */
+  #soul-ring-fill {
+    filter: drop-shadow(0 0 5px rgba(212,118,62,0.5));
+  }
+
   /* ===== 心灵指数圆环 ===== */
   .soul-ring-wrap {
     display: inline-block; position: relative;
@@ -63,6 +78,7 @@
     .profile-bg { animation: none; }
     .stagger { opacity: 1; transform: none; transition: none; }
     .radar-grid, .radar-node { opacity: 1; transition: none; }
+    .profile-name { animation: none; }
   }
 </style>
 

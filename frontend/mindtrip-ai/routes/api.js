@@ -303,6 +303,24 @@ router.get('/return', async (req, res) => {
     `你一共走过了 ${result.checkin_count} 个场景，留下了 ${result.review_count} 条感受。`
   ].join('');
 
+  // 心灵足迹：行程回顾（打卡过的场景详情）
+  const checkinPlaces = checkins
+    .map(id => scenes[id])
+    .filter(Boolean)
+    .map(s => ({
+      id: s.id,
+      name: s.name,
+      emoji: s.emoji || '',
+      type: s.type,
+      poetic_desc: (s.poetic_desc || '').substring(0, 42)
+    }));
+
+  // 美学 DNA：偏好 + 测评标签
+  const profile = req.session.personality;
+  const dnaTags = [profile.profile?.preference, ...(profile.quiz_tags || []).slice(0, 2)]
+    .filter(Boolean);
+  const aestheticDna = dnaTags.length > 0 ? dnaTags.join(' · ') : '自然沉浸 · 人文感知';
+
   res.json({
     pre_score: preScore,
     return_score: result.return_score,
@@ -314,7 +332,9 @@ router.get('/return', async (req, res) => {
     positive_count: result.positive_count,
     profile_name: req.session.personality.profile.name,
     poetic_summary: poeticSummary,
-    llm_generated: llmPoem !== null
+    llm_generated: llmPoem !== null,
+    checkin_places: checkinPlaces,
+    aesthetic_dna: aestheticDna
   });
 });
 
@@ -402,6 +422,44 @@ router.post('/route/edit', (req, res) => {
       ? `已记录你的调整，画像维度「${adjusted}」相应微调`
       : '已记录你的调整'
   });
+});
+
+// ============================================================
+// GET /api/v1/weather — 当日天气（高德 Web 服务代理，降级友好）
+// 注意：需"Web服务"类型的 AMAP Key（JS API Key 会失败，前端自动隐藏）
+// ============================================================
+router.get('/weather', async (req, res) => {
+  const key = process.env.AMAP_KEY || '';
+  if (!key) return res.json({ ok: false });
+
+  try {
+    const url = `https://restapi.amap.com/v3/weather/weatherInfo?city=360200&key=${encodeURIComponent(key)}&extensions=base`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    let r;
+    try {
+      r = await fetch(url, { signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+    const data = await r.json();
+    if (data && data.status === '1' && data.lives && data.lives[0]) {
+      const l = data.lives[0];
+      res.json({
+        ok: true,
+        weather: l.weather,
+        temperature: l.temperature,
+        winddirection: l.winddirection,
+        windpower: l.windpower,
+        humidity: l.humidity,
+        city: l.city
+      });
+    } else {
+      res.json({ ok: false });
+    }
+  } catch (e) {
+    res.json({ ok: false });
+  }
 });
 
 // ============================================================

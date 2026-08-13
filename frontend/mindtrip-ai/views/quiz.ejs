@@ -11,9 +11,40 @@
     position: fixed; inset: 0; z-index: 0;
     background: linear-gradient(180deg, rgba(36,29,20,0.42) 0%, rgba(46,37,27,0.62) 100%);
   }
+  /* 氛围光晕层：慢速漂移的色温光斑，随选择微变（全视觉沉浸） */
+  .quiz-aura {
+    position: fixed; inset: -20%; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(38% 34% at 22% 26%, hsla(28, 70%, 58%, 0.20), transparent 62%),
+      radial-gradient(30% 28% at 78% 30%, hsla(195, 60%, 50%, 0.09), transparent 60%),
+      radial-gradient(44% 40% at 52% 82%, hsla(32, 80%, 55%, 0.15), transparent 64%);
+    filter: blur(16px);
+    animation: auraDrift 18s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+  @keyframes auraDrift {
+    0% { transform: translate3d(-1.5%, -1%, 0) scale(1); }
+    100% { transform: translate3d(1.5%, 1.2%, 0) scale(1.06); }
+  }
+  .quiz-aura::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(30% 26% at 50% 42%, hsla(var(--aura-hue, 32), 85%, 62%, 0.20), transparent 66%);
+    opacity: 0; transition: opacity 0.9s ease;
+  }
+  .quiz-aura.hot::after { opacity: 1; }
   #quiz-app { position: relative; z-index: 2; }
 
   .quiz-header h1 { color: #F2E9DA; text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+
+  /* 知情同意折叠提示（合规保留，不打断测评流程） */
+  .quiz-consent {
+    max-width: 560px; margin: 0 auto 14px; text-align: left;
+    background: rgba(30,23,15,0.72); border: 1px dashed rgba(196,167,125,0.4);
+    border-radius: 10px; padding: 8px 14px; font-size: 0.72rem; color: #C4B998;
+  }
+  .quiz-consent summary { cursor: pointer; list-style: none; }
+  .quiz-consent[open] summary { margin-bottom: 6px; }
+  .quiz-consent p { margin: 4px 0; line-height: 1.8; }
 
   /* 星轨圆环进度 */
   .orbit {
@@ -70,11 +101,18 @@
     border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px;
   }
   .quiz-option {
+    position: relative; overflow: hidden;
     background: rgba(250,246,240,0.14); border: 1.5px solid rgba(196,167,125,0.55);
     color: #F9F1E4; border-radius: 10px; padding: 13px 15px; text-align: left;
     font-size: 0.92rem; line-height: 1.65; transition: all 0.25s ease; cursor: pointer;
     text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
+  .quiz-ripple {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(232,164,99,0.45) 0%, transparent 70%);
+    transform: scale(0); animation: rippleOut 0.6s ease-out forwards;
+  }
+  @keyframes rippleOut { to { transform: scale(1); opacity: 0; } }
   .quiz-option:hover { border-color: #D4763E; background: rgba(212,118,62,0.16); }
   .quiz-option--selected {
     border-color: #D4763E; color: #FFF3E2;
@@ -115,11 +153,18 @@
 
 <div class="quiz-bg"></div>
 <div class="quiz-mask"></div>
+<div class="quiz-aura" id="quiz-aura"></div>
 
 <div class="page-enter" id="quiz-app">
   <div class="quiz-header" style="text-align:center;">
     <h1>心灵测评</h1>
   </div>
+
+  <!-- 知情同意：折叠提示，进入即代表同意 -->
+  <details class="quiz-consent">
+    <summary>继续测评即代表已阅读并同意《隐私与数据说明》 ▸</summary>
+    <p>你的测评数据与旅行记录仅用于生成本次推荐，不会用于任何商业用途；行程结束后所有数据将被清除。</p>
+  </details>
 
   <!-- 星轨圆环进度 -->
   <div class="orbit" id="orbit">
@@ -158,6 +203,83 @@
   let currentIndex = 0;
   let answers = [];
   let autoAdvanceTimer = null; // 首次作答的自动跳题定时器（可被手动前进/回退取消）
+
+  // ---------- 沉浸氛围：Web Audio 合成音 + 色温光晕（全部可降级） ----------
+  // 各题的氛围色相：8 道快测在暖金/琥珀/橙之间游走，3 道行程约束转冷青（宁静）
+  const AURA_HUES = [32, 27, 36, 30, 42, 24, 46, 20, 190, 200, 208];
+  let audioCtx = null;
+
+  function initAudio() {
+    try {
+      if (audioCtx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+    } catch (e) { /* 无声环境静默降级 */ }
+  }
+
+  function playTone(freq, dur = 0.2, type = 'sine', gain = 0.05, when = 0) {
+    if (!audioCtx || audioCtx.state !== 'running') return;
+    try {
+      const t0 = audioCtx.currentTime + when;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g);
+      g.connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.05);
+    } catch (e) { /* ignore */ }
+  }
+
+  // 选择反馈：柔和的"叮"（五声音阶上行，模拟器物轻叩）
+  function playSelect() {
+    playTone(523.25, 0.2, 'sine', 0.05);
+    setTimeout(() => playTone(659.25, 0.18, 'sine', 0.04, 0.06), 0);
+  }
+  // 进入行程约束段：低音提示
+  function playSection() { playTone(392, 0.3, 'triangle', 0.045); }
+  // 提交完成：三音上行小和弦
+  function playSubmit() {
+    playTone(523.25, 0.28, 'sine', 0.05);
+    setTimeout(() => playTone(659.25, 0.28, 'sine', 0.045, 0.08), 0);
+    setTimeout(() => playTone(783.99, 0.5, 'sine', 0.04, 0.16), 0);
+  }
+
+  // 选项涟漪光斑
+  function spawnRipple(buttonEl) {
+    try {
+      const rect = buttonEl.getBoundingClientRect();
+      const d = Math.max(rect.width, rect.height) * 1.1;
+      const span = document.createElement('span');
+      span.className = 'quiz-ripple';
+      span.style.width = d + 'px';
+      span.style.height = d + 'px';
+      span.style.left = (rect.width / 2 - d / 2) + 'px';
+      span.style.top = (rect.height / 2 - d / 2) + 'px';
+      buttonEl.appendChild(span);
+      setTimeout(() => span.remove(), 700);
+    } catch (e) { /* ignore */ }
+  }
+
+  // 切换当前题的氛围色温
+  function setAura(index) {
+    const hue = AURA_HUES[index % AURA_HUES.length] || 32;
+    document.documentElement.style.setProperty('--aura-hue', hue);
+    const aura = document.getElementById('quiz-aura');
+    if (aura) {
+      aura.classList.remove('hot');
+      // 触发重绘后短暂点亮
+      void aura.offsetWidth;
+      aura.classList.add('hot');
+      setTimeout(() => aura.classList.remove('hot'), 900);
+    }
+  }
+</script>
 
   // 加载题库（8 道快测 + 3 道行程约束）
   async function loadQuiz() {
@@ -200,6 +322,8 @@
     `;
 
     updateOrbit();
+    setAura(currentIndex);
+    if (q.is_constraint && currentIndex === 8) playSection();
 
     // 导航按钮
     document.getElementById('btn-prev').style.display = currentIndex > 0 ? '' : 'none';
@@ -219,8 +343,13 @@
   }
 
   function selectOption(index) {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
     const wasAnswered = answers[currentIndex] !== null;
     answers[currentIndex] = index;
+    playSelect();
+    const btns = document.querySelectorAll('.quiz-option');
+    if (btns[index]) spawnRipple(btns[index]);
     renderQuestion();
 
     // 首次作答：选中后自动跳转；回改：不自动跳，让用户自己决定
@@ -310,6 +439,7 @@
 
   async function submitQuiz() {
     if (!answers.every(a => a !== null)) return;
+    playSubmit();
 
     const answerData = answers.map((optIdx, i) => ({
       question_id: questions[i].id,

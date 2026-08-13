@@ -1,5 +1,33 @@
 <%- include('_head') %>
 
+<style>
+  /* ===== 动线页新增：预算明细 + 当日天气 ===== */
+  .budget-card {
+    background: #FFFDF9; border: 1px solid #E4D8C2; border-radius: 12px;
+    padding: 14px 16px; margin-top: 14px; box-shadow: 0 6px 18px rgba(107,74,31,0.08);
+  }
+  .budget-card__t { font-size: 0.8rem; font-weight: 600; color: #3E3528; margin-bottom: 10px; }
+  .budget-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .budget-item { text-align: center; }
+  .budget-item__v { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--color-primary); }
+  .budget-item__l { font-size: 0.66rem; color: #8A7D6A; margin-top: 2px; }
+  .budget-total {
+    margin-top: 12px; padding-top: 10px; border-top: 1px dashed #E4D8C2;
+    text-align: center; font-size: 0.82rem; color: #5C4B33;
+  }
+  .budget-total b { font-family: var(--font-display); font-size: 1.15rem; color: var(--color-accent); }
+
+  .weather-card {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(135deg, #F7FBFD, #EFF6FA);
+    border: 1px solid #D8E8F0; border-radius: 12px;
+    padding: 10px 16px; margin-top: 14px;
+  }
+  .weather-card__icon { font-size: 1.4rem; }
+  .weather-card__main { font-size: 0.95rem; font-weight: 600; color: #3E5A6B; }
+  .weather-card__sub { font-size: 0.7rem; color: #7A93A3; margin-top: 2px; }
+</style>
+
 <div class="page-enter">
   <h1 style="text-align:center;">心旅推荐 · <%= city.name %></h1>
   <p class="text-muted text-center mb-md">为你定制的文旅动线 · <a href="/explore" style="color:var(--color-primary);">切换城市 ⇄</a></p>
@@ -50,10 +78,16 @@
   <!-- 分层采集：行程约束适配提示 -->
   <div id="constraint-note" class="constraint-note" style="display:none;"></div>
 
+  <!-- 当日天气（降级：接口失败自动隐藏） -->
+  <div id="weather-card" class="weather-card" style="display:none;"></div>
+
   <!-- 地图 -->
   <div id="map-container" class="map-container">
     <div id="amap" style="width:100%; height:100%;"></div>
   </div>
+
+  <!-- 人均预算预估（随当日动线变化） -->
+  <div id="budget-card"></div>
 
   <!-- 当前动线（可拖拽） -->
   <div class="mt-md" style="display:flex; align-items:center; justify-content:space-between;">
@@ -145,6 +179,7 @@
     scenesData.scenes.forEach(s => { allScenes[s.id] = s; });
 
     rebuildMultiDayPlan();
+    fetchWeather(); // 当日天气（降级友好，不阻塞动线渲染）
   }
 
   function rebuildMultiDayPlan() {
@@ -207,6 +242,7 @@
     renderTimeline();
     renderAvailable();
     renderMap();
+    renderBudget();
     updateTitle();
   }
 
@@ -330,6 +366,69 @@
         </div>
       `;
     }).join('');
+  }
+
+  // ---------- 预算明细（人均预估，借鉴智能旅行助手） ----------
+  const PRICE_BY_TYPE = {
+    景点: { 低: 30, 中: 60, 高: 120 },
+    餐饮: { 低: 40, 中: 80, 高: 150 },
+    手作: { 低: 60, 中: 120, 高: 300 },
+    夜间: { 低: 30, 中: 60, 高: 100 }
+  };
+  const DAILY_TRANSPORT = 20;
+
+  function renderBudget() {
+    const el = document.getElementById('budget-card');
+    const timeline = getCurrentTimeline();
+    if (!timeline || timeline.length === 0) {
+      el.innerHTML = '';
+      return;
+    }
+    const sums = { 景点: 0, 餐饮: 0, 手作: 0, 夜间: 0 };
+    timeline.forEach(id => {
+      const scene = allScenes[id];
+      if (!scene) return;
+      const lvl = scene.price_level || '中';
+      const table = PRICE_BY_TYPE[scene.type];
+      sums[scene.type] += (table && table[lvl]) || 60;
+    });
+    const subtotal = Object.values(sums).reduce((a, b) => a + b, 0);
+    const total = subtotal + DAILY_TRANSPORT;
+    const items = [['景点', sums.景点], ['餐饮', sums.餐饮], ['手作', sums.手作], ['夜间', sums.夜间]]
+      .filter(([, v]) => v > 0)
+      .map(([name, v]) => `
+        <div class="budget-item">
+          <div class="budget-item__v">¥${v}</div>
+          <div class="budget-item__l">${name}</div>
+        </div>`).join('');
+    el.innerHTML = `
+      <div class="budget-card fade-in-up">
+        <div class="budget-card__t">💰 人均预算预估 · ${getDayDateLabel(currentDay)}</div>
+        <div class="budget-grid">${items}</div>
+        <div class="budget-total">当日合计（含市内交通 ¥${DAILY_TRANSPORT}）· <b>¥${total}</b> / 人</div>
+      </div>`;
+  }
+
+  // ---------- 当日天气（借鉴智能旅行助手；失败/无 Key 时隐藏） ----------
+  async function fetchWeather() {
+    const el = document.getElementById('weather-card');
+    try {
+      const res = await fetch('/api/v1/weather');
+      const data = await res.json();
+      if (!data.ok) return;
+      const icon = data.weather.includes('雨') ? '🌧️' :
+                   data.weather.includes('云') ? '⛅' :
+                   data.weather.includes('阴') ? '☁️' : '🌤️';
+      el.innerHTML = `
+        <div class="weather-card__icon">${icon}</div>
+        <div>
+          <div class="weather-card__main">${data.city} · ${data.weather} ${data.temperature}°C</div>
+          <div class="weather-card__sub">${data.winddirection}风 ${data.windpower} 级 · 湿度 ${data.humidity}%</div>
+        </div>`;
+      el.style.display = '';
+    } catch (e) {
+      // 静默降级
+    }
   }
 
   // 等待高德地图 JS 加载完成（脚本同步加载，但 init 执行时插件可能尚未就绪）

@@ -1,5 +1,64 @@
 <%- include('_head') %>
 
+<style>
+  /* ===== 归途 · 心灵足迹纪念卡（可导出的卡片，去 Web3） ===== */
+  .footprint {
+    background: linear-gradient(160deg, #FFFDF9 0%, #FAF3E6 100%);
+    border: 1px solid #E4D8C2; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(107,74,31,0.14);
+  }
+  .footprint__top {
+    background: linear-gradient(120deg, #6B4A1F, #8B6F47);
+    color: #F5EDDE; padding: 20px 22px;
+  }
+  .footprint__brand { font-size: 0.66rem; letter-spacing: 0.32em; opacity: 0.85; }
+  .footprint__name { font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; margin-top: 6px; }
+  .footprint__dna { font-size: 0.78rem; opacity: 0.92; margin-top: 5px; letter-spacing: 0.05em; }
+  .footprint__body { padding: 20px 22px 22px; }
+
+  .footprint__score { display: flex; align-items: flex-start; justify-content: center; gap: 16px; }
+  .fp-score { text-align: center; min-width: 96px; }
+  .fp-score__v { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: #3E3528; line-height: 1.1; }
+  .fp-score__v.up { color: var(--color-accent, #D4763E); }
+  .fp-score__l { font-size: 0.7rem; color: #8A7D6A; margin-top: 2px; }
+  .fp-arrow { font-size: 1.3rem; color: #C4A77D; padding-top: 18px; }
+  .fp-delta { text-align: center; margin: 14px 0 2px; }
+  .fp-delta__pill {
+    display: inline-block; background: #FFF3EB; border: 1px solid #F0D3B8;
+    color: #D4763E; border-radius: 999px; padding: 6px 18px;
+    font-size: 0.88rem; font-weight: 600;
+  }
+
+  .fp-section { margin-top: 18px; }
+  .fp-section__t { font-size: 0.7rem; letter-spacing: 0.14em; color: #8A7D6A; margin-bottom: 9px; }
+  .fp-places { display: flex; flex-direction: column; gap: 8px; }
+  .fp-place {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: #FFFDF9; border: 1px solid #EFE5D4; border-radius: 10px; padding: 9px 12px;
+  }
+  .fp-place__dot {
+    flex: 0 0 26px; height: 26px; border-radius: 50%;
+    background: #8B6F47; color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .fp-place__name { font-size: 0.88rem; font-weight: 600; color: #3E3528; }
+  .fp-place__desc { font-size: 0.74rem; color: #8A7D6A; margin-top: 2px; line-height: 1.6; }
+
+  .fp-note {
+    font-size: 0.83rem; line-height: 2; color: #5C4B33;
+    background: #FFFDF9; border: 1px dashed #E4D8C2; border-radius: 10px;
+    padding: 13px 15px; white-space: pre-line;
+  }
+
+  .fp-foot {
+    margin-top: 18px; padding-top: 13px; border-top: 1px dashed #E4D8C2;
+    text-align: center; font-size: 0.7rem; color: #A0937E; line-height: 1.8;
+  }
+  .fp-foot b { color: #8B6F47; }
+
+  .export-bar { display: flex; gap: 10px; margin-top: 20px; }
+</style>
+
 <div class="page-enter" id="return-app">
   <div id="return-loading" class="empty-state">
     <div class="empty-state__icon">⏳</div>
@@ -7,7 +66,15 @@
   </div>
 </div>
 
+<script src="/vendor/html2canvas.min.js"></script>
 <script>
+  // 简单转义，防 LLM 输出注入 HTML
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
   async function loadReturn() {
     const res = await fetch('/api/v1/return');
     if (!res.ok) {
@@ -20,65 +87,101 @@
   }
 
   function renderReturn(data) {
+    const places = (data.checkin_places || []).map((p, i) => `
+      <div class="fp-place">
+        <div class="fp-place__dot">${i + 1}</div>
+        <div>
+          <div class="fp-place__name">${esc(p.emoji)} ${esc(p.name)}
+            <span style="font-size:0.68rem; color:#A0937E;">· ${esc(p.type)}</span>
+          </div>
+          <div class="fp-place__desc">${esc(p.poetic_desc)}</div>
+        </div>
+      </div>
+    `).join('');
+
     document.getElementById('return-app').innerHTML = `
-      <h1 style="text-align: center;">归途评估</h1>
+      <h1 style="text-align: center;">归途 · 心灵足迹</h1>
       <p class="text-muted text-center mb-md">这趟心旅，你的心灵发生了什么变化</p>
 
-      <div class="score-compare fade-in-up">
-        <div class="score-card">
-          <div class="score-card__value">${data.pre_score}</div>
-          <div class="score-card__label">出发前</div>
-          <div class="score-card__tags">
-            ${data.pre_tags.map(t => `<span class="tag tag--primary" style="font-size:0.65rem;">${t}</span>`).join('')}
+      <div class="footprint fade-in-up" id="footprint-card">
+        <div class="footprint__top">
+          <div class="footprint__brand">心旅 AI · 心灵足迹 MINDTRIP</div>
+          <div class="footprint__name">${esc(data.profile_name)}</div>
+          <div class="footprint__dna">${esc(data.aesthetic_dna || '')}</div>
+        </div>
+
+        <div class="footprint__body">
+          <div class="footprint__score">
+            <div class="fp-score">
+              <div class="fp-score__v">${data.pre_score}</div>
+              <div class="fp-score__l">出发前</div>
+              <div class="fp-tags" style="display:flex; justify-content:center; gap:5px; margin-top:7px;">
+                ${data.pre_tags.map(t => `<span class="tag tag--primary" style="font-size:0.62rem;">${esc(t)}</span>`).join('')}
+              </div>
+            </div>
+            <div class="fp-arrow">→</div>
+            <div class="fp-score">
+              <div class="fp-score__v up">${data.return_score}</div>
+              <div class="fp-score__l">归途后</div>
+              <div class="fp-tags" style="display:flex; justify-content:center; gap:5px; margin-top:7px;">
+                ${data.return_tags.map(t => `<span class="tag tag--accent" style="font-size:0.62rem;">${esc(t)}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="fp-delta"><span class="fp-delta__pill">心灵指数 +${data.improvement}</span></div>
+
+          ${places ? `
+            <div class="fp-section">
+              <div class="fp-section__t">这趟走过的路</div>
+              <div class="fp-places">${places}</div>
+            </div>
+          ` : ''}
+
+          <div class="fp-section">
+            <div class="fp-section__t">AI 札记</div>
+            <div class="fp-note">${esc(data.poetic_summary)}</div>
+          </div>
+
+          <div class="fp-foot">
+            让每一段旅程，都与内心同频共振。<br>
+            <b>心旅 AI · 走过 ${data.checkin_count} 个场景 · 留下 ${data.review_count} 条感受</b>
           </div>
         </div>
-
-        <div class="score-arrow">→</div>
-
-        <div class="score-card">
-          <div class="score-card__value" style="color: var(--color-accent);">${data.return_score}</div>
-          <div class="score-card__label">归途后</div>
-          <div class="score-card__tags">
-            ${data.return_tags.map(t => `<span class="tag tag--accent" style="font-size:0.65rem;">${t}</span>`).join('')}
-          </div>
-        </div>
       </div>
 
-      <div class="score-improvement pulse">
-        +${data.improvement} 分
-      </div>
-
-      <div class="return-stats">
-        <div class="return-stat">
-          <div class="return-stat__value">${data.checkin_count}</div>
-          <div class="return-stat__label">打卡场景</div>
-        </div>
-        <div class="return-stat">
-          <div class="return-stat__value">${data.review_count}</div>
-          <div class="return-stat__label">点评数</div>
-        </div>
-        <div class="return-stat">
-          <div class="return-stat__value">${data.positive_count}</div>
-          <div class="return-stat__label">推荐数</div>
-        </div>
-      </div>
-
-      <div class="return-poem fade-in-up" style="animation-delay: 0.5s;">
-        <p style="margin-bottom: 12px;">${data.poetic_summary}</p>
-        <div class="divider"></div>
-        <p class="text-poetic" style="font-size: 1rem;">
-          ${data.profile_name}，<br>
-          旅行不是逃离日常，<br>
-          而是找到那个与你的灵魂共振的地方。
-        </p>
-      </div>
-
-      <div class="mt-lg">
-        <a href="/api/v1/reset" class="btn btn-primary" onclick="resetSession(event)">
+      <div class="export-bar">
+        <button class="btn btn-primary" style="flex:1;" id="export-btn" onclick="exportCard()">
+          保存这张心灵足迹 ↓
+        </button>
+        <a href="/api/v1/reset" class="btn btn-outline" style="flex:1; text-align:center;" onclick="resetSession(event)">
           再启心旅 ↻
         </a>
       </div>
     `;
+
+    // html2canvas 未加载（本地库异常）时隐藏导出，不阻塞页面
+    if (typeof html2canvas === 'undefined') {
+      const btn = document.getElementById('export-btn');
+      if (btn) btn.style.display = 'none';
+    }
+  }
+
+  async function exportCard() {
+    const btn = document.getElementById('export-btn');
+    const card = document.getElementById('footprint-card');
+    if (!card || typeof html2canvas === 'undefined') return;
+    try {
+      btn.textContent = '正在生成…';
+      const canvas = await html2canvas(card, { scale: 2, backgroundColor: '#FFFDF9', useCORS: true });
+      const link = document.createElement('a');
+      link.download = '心旅AI-心灵足迹.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent = '已保存，旅途愉快 ♥';
+    } catch (e) {
+      btn.textContent = '导出失败，可截图保存';
+    }
   }
 
   async function resetSession(e) {

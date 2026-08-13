@@ -119,6 +119,20 @@
   .final-cta { display: block; width: 100%; margin-top: 22px; padding: 15px 20px; font-size: 1.02rem; }
   .final-note { font-size: 0.7rem; color: #8A7D6A; margin-top: 12px; }
 
+  /* ---- 知情同意折叠区（合规保留，不再单开一屏） ---- */
+  .consent-fold {
+    max-width: 560px; margin: 18px auto 0; text-align: left;
+    background: #FFFDF9; border: 1px solid #E4D8C2; border-radius: 10px;
+    padding: 0 14px; font-size: 0.74rem; color: #7A6E5D; line-height: 1.85;
+  }
+  .consent-fold summary {
+    cursor: pointer; padding: 11px 0; color: #6B4A1F; font-weight: 500; list-style: none;
+  }
+  .consent-fold summary::before { content: '▸ '; }
+  .consent-fold[open] summary::before { content: '▾ '; }
+  .consent-fold__body { border-top: 1px dashed #E4D8C2; padding: 8px 0 13px; }
+  .consent-fold__body p { margin: 6px 0; }
+
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
     .intro-mask { display: none !important; }
@@ -141,7 +155,7 @@
     不只是去哪里<br>而是<b>为什么去</b>
   </p>
   <p class="hero-sub">在出发之前，先遇见自己<br>8 道情境题 · 2 分钟 · 找到适合你此刻心境的旅程</p>
-  <a href="/consent" class="btn btn-primary hero-cta">开启你的自我探索之旅 →</a>
+  <a href="/quiz" class="btn btn-primary hero-cta">开启你的自我探索之旅 →</a>
 </div>
 
 <!-- ========== 痛点：暗处看清 ========== -->
@@ -241,8 +255,15 @@
 <!-- ========== 收尾 CTA：走向光 ========== -->
 <div class="sec sec-final">
   <div class="final-title reveal">从心出发，走向世界</div>
-  <a href="/consent" class="btn btn-primary final-cta reveal">开启你的自我探索之旅 →</a>
+  <a href="/quiz" class="btn btn-primary final-cta reveal">开启你的自我探索之旅 →</a>
   <p class="final-note reveal">Demo · 测评约 2 分钟 · 完整体验四步闭环</p>
+  <details class="consent-fold reveal">
+    <summary>隐私与数据说明 · 进入测评即代表已阅读并同意</summary>
+    <div class="consent-fold__body">
+      <p>心旅 AI 尊重你的数据主权：你的测评数据与旅行记录仅用于生成本次推荐，不会用于任何商业用途。</p>
+      <p>行程结束后所有数据将被清除；打卡与快评数据仅用于优化推荐质量（可选）。</p>
+    </div>
+  </details>
 </div>
 
 <script>
