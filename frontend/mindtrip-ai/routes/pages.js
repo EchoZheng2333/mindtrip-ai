@@ -98,4 +98,20 @@ router.get('/return', (req, res) => {
   });
 });
 
+// 旅程分享页 —— 无状态（任何人可访问），按 token 展示归途纪念卡
+router.get('/share/:token', (req, res) => {
+  const db = require('../services/db');
+  const share = db.getShare(req.params.token);
+  if (!share) {
+    return res.status(404).render('error', {
+      title: '分享不存在',
+      message: '这段旅程可能已被删除，或链接有误。'
+    });
+  }
+  res.render('share', {
+    title: '心旅 · 旅程分享',
+    share
+  });
+});
+
 module.exports = router;

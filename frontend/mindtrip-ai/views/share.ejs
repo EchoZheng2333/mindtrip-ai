@@ -1,0 +1,187 @@
+<%- include('_head') %>
+
+<style>
+  /* ===== 旅程分享页：心灵足迹分享卡（无状态，可转发） ===== */
+  .share-wrap { padding: 6px 0 10px; }
+  .share-head { text-align: center; margin-bottom: 16px; }
+  .share-head__brand { font-size: 0.7rem; letter-spacing: 0.3em; color: #A0937E; }
+  .share-head__name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #3E3528; margin-top: 6px; }
+  .share-head__sub { font-size: 0.78rem; color: #8A7D6A; margin-top: 4px; }
+
+  .footprint {
+    background: linear-gradient(160deg, #FFFDF9 0%, #FAF3E6 100%);
+    border: 1px solid #E4D8C2; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(107,74,31,0.14);
+  }
+  .footprint__top {
+    background: linear-gradient(120deg, #6B4A1F, #8B6F47);
+    color: #F5EDDE; padding: 20px 22px;
+  }
+  .footprint__brand { font-size: 0.66rem; letter-spacing: 0.32em; opacity: 0.85; }
+  .footprint__name { font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; margin-top: 6px; }
+  .footprint__dna { font-size: 0.78rem; opacity: 0.92; margin-top: 5px; letter-spacing: 0.05em; }
+  .footprint__body { padding: 20px 22px 22px; }
+
+  .footprint__score { display: flex; align-items: flex-start; justify-content: center; gap: 16px; }
+  .fp-score { text-align: center; min-width: 96px; }
+  .fp-score__v { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: #3E3528; line-height: 1.1; }
+  .fp-score__v.up { color: var(--color-accent, #D4763E); }
+  .fp-score__l { font-size: 0.7rem; color: #8A7D6A; margin-top: 2px; }
+  .fp-arrow { font-size: 1.3rem; color: #C4A77D; padding-top: 18px; }
+  .fp-delta { text-align: center; margin: 14px 0 2px; }
+  .fp-delta__pill {
+    display: inline-block; background: #FFF3EB; border: 1px solid #F0D3B8;
+    color: #D4763E; border-radius: 999px; padding: 6px 18px;
+    font-size: 0.88rem; font-weight: 600;
+  }
+  .fp-section { margin-top: 18px; }
+  .fp-section__t { font-size: 0.7rem; letter-spacing: 0.14em; color: #8A7D6A; margin-bottom: 9px; }
+  .fp-places { display: flex; flex-direction: column; gap: 8px; }
+  .fp-place {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: #FFFDF9; border: 1px solid #EFE5D4; border-radius: 10px; padding: 9px 12px;
+  }
+  .fp-place__dot {
+    flex: 0 0 26px; height: 26px; border-radius: 50%;
+    background: #8B6F47; color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .fp-place__name { font-size: 0.88rem; font-weight: 600; color: #3E3528; }
+  .fp-place__desc { font-size: 0.74rem; color: #8A7D6A; margin-top: 2px; line-height: 1.6; }
+  .fp-note {
+    font-size: 0.83rem; line-height: 2; color: #5C4B33;
+    background: #FFFDF9; border: 1px dashed #E4D8C2; border-radius: 10px;
+    padding: 13px 15px; white-space: pre-line;
+  }
+  .fp-foot {
+    margin-top: 18px; padding-top: 13px; border-top: 1px dashed #E4D8C2;
+    text-align: center; font-size: 0.7rem; color: #A0937E; line-height: 1.8;
+  }
+
+  .share-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .share-cta { margin-top: 22px; text-align: center; padding-top: 18px; border-top: 1px dashed #E4D8C2; }
+  .share-cta__t { font-size: 0.8rem; color: #8A7D6A; margin-bottom: 10px; }
+</style>
+
+<div class="page-enter">
+  <div class="share-wrap">
+    <div class="share-head">
+      <div class="share-head__brand">心旅 AI · MINDTRIP</div>
+      <div class="share-head__name">来自「<%= share.nickname %>」的旅程分享</div>
+      <div class="share-head__sub">TA 的心灵足迹，正在等你看见</div>
+    </div>
+
+    <div class="footprint fade-in-up">
+      <div class="footprint__top">
+        <div class="footprint__brand">心旅 AI · 心灵足迹</div>
+        <div class="footprint__name"><%= share.profile_name %></div>
+        <% if (share.aesthetic_dna) { %>
+          <div class="footprint__dna"><%= share.aesthetic_dna %></div>
+        <% } %>
+      </div>
+      <div class="footprint__body">
+        <div class="footprint__score">
+          <div class="fp-score">
+            <div class="fp-score__v"><%= share.pre_score %></div>
+            <div class="fp-score__l">出发前</div>
+            <div class="fp-tags" style="display:flex; justify-content:center; gap:5px; margin-top:7px;">
+              <% share.pre_tags.forEach(t => { %>
+                <span class="tag tag--primary" style="font-size:0.62rem;"><%= t %></span>
+              <% }) %>
+            </div>
+          </div>
+          <div class="fp-arrow">→</div>
+          <div class="fp-score">
+            <div class="fp-score__v up"><%= share.return_score %></div>
+            <div class="fp-score__l">归途后</div>
+            <div class="fp-tags" style="display:flex; justify-content:center; gap:5px; margin-top:7px;">
+              <% share.return_tags.forEach(t => { %>
+                <span class="tag tag--accent" style="font-size:0.62rem;"><%= t %></span>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+
+        <div class="fp-delta"><span class="fp-delta__pill">心灵指数 +<%= share.improvement %></span></div>
+
+        <% if (share.checkin_places && share.checkin_places.length > 0) { %>
+          <div class="fp-section">
+            <div class="fp-section__t">TA 走过的路</div>
+            <div class="fp-places">
+              <% share.checkin_places.forEach((p, i) => { %>
+                <div class="fp-place">
+                  <div class="fp-place__dot"><%= i + 1 %></div>
+                  <div>
+                    <div class="fp-place__name"><%= p.emoji %> <%= p.name %><span style="font-size:0.68rem; color:#A0937E;"> · <%= p.type %></span></div>
+                    <div class="fp-place__desc"><%= p.poetic_desc %></div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+
+        <% if (share.poetic_summary) { %>
+          <div class="fp-section">
+            <div class="fp-section__t">AI 札记</div>
+            <div class="fp-note"><%= share.poetic_summary %></div>
+          </div>
+        <% } %>
+
+        <div class="fp-foot">
+          让每一段旅程，都与内心同频共振。<br>
+          <b>心旅 AI · 心灵足迹</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="share-actions">
+      <button class="btn btn-primary" style="flex:1;" onclick="copyLink()">🔗 复制分享链接</button>
+      <button class="btn btn-outline" style="flex:1;" id="native-share-btn" onclick="nativeShare()" hidden>分享到更多</button>
+    </div>
+
+    <div class="share-cta">
+      <div class="share-cta__t">想知道自己的心灵会走出怎样的足迹？</div>
+      <a href="/" class="btn btn-primary" style="width:100%;">开启我的心旅 →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const shareUrl = window.location.href;
+
+  function copyLink() {
+    const btn = event.currentTarget;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        btn.textContent = '✓ 已复制';
+        setTimeout(() => { btn.textContent = '🔗 复制分享链接'; }, 2000);
+      });
+    } else {
+      // 降级：textarea 复制
+      const ta = document.createElement('textarea');
+      ta.value = shareUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '✓ 已复制';
+      setTimeout(() => { btn.textContent = '🔗 复制分享链接'; }, 2000);
+    }
+  }
+
+  // 移动端/桌面原生分享（Web Share API）
+  const nativeBtn = document.getElementById('native-share-btn');
+  if (navigator.share) {
+    nativeBtn.hidden = false;
+    window.nativeShare = () => {
+      navigator.share({
+        title: '心旅 AI · 旅程分享',
+        text: '来看看「' + document.querySelector('.share-head__name')?.textContent + '」的心灵足迹',
+        url: shareUrl
+      }).catch(() => {});
+    };
+  }
+</script>
+
+<%- include('_foot') %>

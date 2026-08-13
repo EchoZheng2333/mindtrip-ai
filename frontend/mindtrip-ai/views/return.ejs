@@ -154,16 +154,54 @@
         <button class="btn btn-primary" style="flex:1;" id="export-btn" onclick="exportCard()">
           保存这张心灵足迹 ↓
         </button>
+        <button class="btn btn-accent" style="flex:1;" id="share-btn" onclick="shareJourney()">
+          ↗ 分享这段旅程
+        </button>
         <a href="/api/v1/reset" class="btn btn-outline" style="flex:1; text-align:center;" onclick="resetSession(event)">
           再启心旅 ↻
         </a>
       </div>
     `;
 
+    // 保存归途数据供分享使用
+    window.returnData = data;
+
     // html2canvas 未加载（本地库异常）时隐藏导出，不阻塞页面
     if (typeof html2canvas === 'undefined') {
       const btn = document.getElementById('export-btn');
       if (btn) btn.style.display = 'none';
+    }
+  }
+
+  // 旅程分享：生成无状态分享链接（转发到其他社交媒体）
+  async function shareJourney() {
+    const btn = document.getElementById('share-btn');
+    const d = window.returnData || {};
+    try {
+      btn.textContent = '生成中…';
+      const res = await fetch('/api/v1/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_name: d.profile_name,
+          aesthetic_dna: d.aesthetic_dna || '',
+          pre_score: d.pre_score,
+          return_score: d.return_score,
+          improvement: d.improvement,
+          pre_tags: d.pre_tags || [],
+          return_tags: d.return_tags || [],
+          poetic_summary: d.poetic_summary,
+          checkin_places: d.checkin_places || []
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        window.location.href = result.share_url;
+      } else {
+        btn.textContent = '分享失败，请重试';
+      }
+    } catch (e) {
+      btn.textContent = '分享失败，请重试';
     }
   }
 

@@ -9,6 +9,7 @@ const { matchPersonality } = require('../services/matching');
 const { calcReturnScore } = require('../services/soul-score');
 const { generateWhyFitBatch, generateReturnPoem } = require('../services/llm');
 const { scoreSceneFit, sceneFitReason, buildConstraintNote } = require('../services/constraints');
+const db = require('../services/db');
 
 // 快测 8 题 + 行程约束 3 题
 const ALL_QUESTIONS = [...questions, ...(questions.constraintQuestions || [])];
@@ -444,6 +445,31 @@ router.post('/route/edit', (req, res) => {
       ? `已记录你的调整，画像维度「${adjusted}」相应微调`
       : '已记录你的调整'
   });
+});
+
+// ============================================================
+// POST /api/v1/share — 旅程分享：保存归途数据，返回分享 token
+// 生成无状态分享页（其他设备可访问），支撑传播转发
+// ============================================================
+router.post('/share', (req, res) => {
+  if (!req.session.personality) {
+    return res.status(400).json({ success: false, message: '请先完成测评' });
+  }
+  const { nickname, profile_name, aesthetic_dna, pre_score, return_score, improvement,
+          pre_tags, return_tags, poetic_summary, checkin_places } = req.body;
+  const token = db.createShare({
+    nickname: nickname || db.getNickname(req.sessionID) || '旅人',
+    profile_name: profile_name || req.session.personality.profile.name,
+    aesthetic_dna: aesthetic_dna || '',
+    pre_score: pre_score || 0,
+    return_score: return_score || 0,
+    improvement: improvement || 0,
+    pre_tags: pre_tags || [],
+    return_tags: return_tags || [],
+    poetic_summary: poetic_summary || '',
+    checkin_places: checkin_places || []
+  });
+  res.json({ success: true, token, share_url: '/share/' + token });
 });
 
 // ============================================================
