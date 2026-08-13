@@ -426,10 +426,13 @@ router.post('/route/edit', (req, res) => {
 
 // ============================================================
 // GET /api/v1/weather — 当日天气（高德 Web 服务代理，降级友好）
-// 注意：需"Web服务"类型的 AMAP Key（JS API Key 会失败，前端自动隐藏）
+// 说明：高德一个 Key 只能绑定一个平台类型。
+//   - AMAP_WEB_KEY: "Web服务"类型 Key（天气/POI 查询）
+//   - AMAP_KEY: "Web端(JS API)"类型 Key（前端地图）
+// 缺 Web 服务 Key 时静默降级，前端自动隐藏天气卡片
 // ============================================================
 router.get('/weather', async (req, res) => {
-  const key = process.env.AMAP_KEY || '';
+  const key = process.env.AMAP_WEB_KEY || process.env.AMAP_KEY || '';
   if (!key) return res.json({ ok: false });
 
   try {
