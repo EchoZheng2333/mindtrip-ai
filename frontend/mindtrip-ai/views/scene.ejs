@@ -25,6 +25,13 @@
     from { background-position: 0 0; }
     to { background-position: 3% 1.5%; }
   }
+
+  /* 场景主图（AI 生成配图；无图时自动隐藏） */
+  .scene-hero {
+    border-radius: 14px; overflow: hidden; margin-bottom: 14px;
+    box-shadow: 0 8px 22px rgba(107,74,31,0.16);
+  }
+  .scene-hero img { width: 100%; display: block; aspect-ratio: 16/10; object-fit: cover; }
 </style>
 
 <div class="page-enter" id="scene-app">
@@ -67,6 +74,12 @@
                       currentHour < 16 ? 4 : currentHour < 18 ? 5 : 6;
 
     document.getElementById('scene-app').innerHTML = `
+      ${s.image ? `
+        <div class="scene-hero">
+          <img src="${s.image}" alt="${s.name}" loading="lazy"
+               onerror="this.closest('.scene-hero').style.display='none'">
+        </div>
+      ` : ''}
       <div class="scene-header">
         <div class="scene-type">${s.emoji || ''} ${s.type}</div>
         <div class="scene-name">${s.name}</div>

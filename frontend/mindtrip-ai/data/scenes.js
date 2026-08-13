@@ -6,6 +6,7 @@ const scenes = {
   yuyao_museum: {
     id: 'yuyao_museum',
     city: 'jingdezhen',
+    image: '/img/scenes/yuyao_museum.jpg',
     name: '御窑博物馆',
     type: '景点',
     time_slot: '早晨',
@@ -37,6 +38,7 @@ const scenes = {
   local_restaurant: {
     id: 'local_restaurant',
     city: 'jingdezhen',
+    image: '/img/scenes/local_restaurant.jpg',
     name: '三宝村农家小厨',
     type: '餐饮',
     time_slot: '中午',
@@ -64,6 +66,7 @@ const scenes = {
   sanbao_craft: {
     id: 'sanbao_craft',
     city: 'jingdezhen',
+    image: '/img/scenes/sanbao_craft.jpg',
     name: '三宝拉坯与高温釉彩手作坊',
     type: '手作',
     time_slot: '下午',
@@ -95,6 +98,7 @@ const scenes = {
   kiln_experience: {
     id: 'kiln_experience',
     city: 'jingdezhen',
+    image: '/img/scenes/kiln_experience.jpg',
     name: '古法柴窑烧制体验馆',
     type: '手作',
     time_slot: '傍晚',
@@ -118,6 +122,7 @@ const scenes = {
   taoxichuan: {
     id: 'taoxichuan',
     city: 'jingdezhen',
+    image: '/img/scenes/taoxichuan.jpg',
     name: '陶溪川文创街区',
     type: '景点',
     time_slot: '下午',
@@ -149,6 +154,7 @@ const scenes = {
   sanbao_valley: {
     id: 'sanbao_valley',
     city: 'jingdezhen',
+    image: '/img/scenes/sanbao_valley.jpg',
     name: '三宝国际瓷谷',
     type: '景点',
     time_slot: '傍晚',
@@ -172,6 +178,7 @@ const scenes = {
   sanbao_teahouse: {
     id: 'sanbao_teahouse',
     city: 'jingdezhen',
+    image: '/img/scenes/sanbao_teahouse.jpg',
     name: '三宝村民宿茶室',
     type: '夜间',
     time_slot: '夜晚',
@@ -195,6 +202,7 @@ const scenes = {
   old_street_food: {
     id: 'old_street_food',
     city: 'jingdezhen',
+    image: '/img/scenes/old_street_food.jpg',
     name: '抚州弄小吃街',
     type: '餐饮',
     time_slot: '中午',

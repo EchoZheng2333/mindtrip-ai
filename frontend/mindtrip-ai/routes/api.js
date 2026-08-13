@@ -358,6 +358,7 @@ router.get('/scenes', (req, res) => {
       coords: s.coords,
       nav_url: s.nav_url,
       emoji: s.emoji,
+      image: s.image || '',
       time_limited: s.time_limited || '',
       business_hours: s.business_hours || '',
       special_events: s.special_events || [],

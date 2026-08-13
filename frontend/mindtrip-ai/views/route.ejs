@@ -26,6 +26,10 @@
   .weather-card__icon { font-size: 1.4rem; }
   .weather-card__main { font-size: 0.95rem; font-weight: 600; color: #3E5A6B; }
   .weather-card__sub { font-size: 0.7rem; color: #7A93A3; margin-top: 2px; }
+
+  /* 动线卡片场景缩略图 */
+  .timeline-thumb { border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .timeline-thumb img { width: 100%; display: block; height: 84px; object-fit: cover; }
 </style>
 
 <div class="page-enter">
@@ -294,6 +298,12 @@
                  ondragleave="onDragLeave(event)"
                  ondrop="onDrop(event, ${i}, 'timeline')"
                  style="animation-delay: ${i * 0.08}s;">
+              ${scene.image ? `
+                <div class="timeline-thumb">
+                  <img src="${scene.image}" alt="${scene.name}" loading="lazy"
+                       onerror="this.parentNode.style.display='none'">
+                </div>
+              ` : ''}
               <div class="timeline-dot">${i + 1}</div>
               <span class="drag-handle">⠿ 拖拽调整</span>
               <div class="timeline-time">${TIME_SLOTS[i]}</div>
