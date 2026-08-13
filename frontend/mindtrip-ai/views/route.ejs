@@ -134,6 +134,38 @@
   }
 
   /* ===== 高德地图：Marker 使用 SVG 图标（见 makeMarkerIcon），无额外 CSS ===== */
+
+  /* ===== 移动端：备选场景"＋ 加入行程"（触屏不支持 HTML5 拖拽的替代交互） ===== */
+  .available-add {
+    display: none; margin-top: 8px; width: 100%;
+    background: #F5E9C8; color: #8B6914; border: 1px solid #E0C879;
+    border-radius: 999px; padding: 6px 0; font-size: 0.74rem; font-weight: 600;
+    cursor: pointer; text-align: center;
+  }
+  @media (max-width: 600px), (pointer: coarse) {
+    .available-add { display: block; }
+  }
+  /* 时段替换弹层（移动端底部 sheet） */
+  .replace-sheet {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(30,24,16,0.5);
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  .replace-sheet.show { display: flex; }
+  .replace-sheet__panel {
+    width: 100%; max-width: 440px;
+    background: #FFFDF9; border-radius: 18px 18px 0 0;
+    padding: 18px 20px 26px;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.22);
+  }
+  .replace-sheet__title { font-size: 0.9rem; font-weight: 600; color: #3E3528; margin-bottom: 14px; line-height: 1.6; }
+  .replace-sheet__slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+  .replace-slot {
+    background: #F8F1DC; border: 1px solid #E8D9A8; border-radius: 10px;
+    padding: 10px 2px; font-size: 0.72rem; font-weight: 600; color: #8B6914;
+    cursor: pointer; text-align: center; line-height: 1.4;
+  }
+  .replace-slot:active { background: #E8D9A8; }
 </style>
 
 <div class="page-enter">
@@ -220,6 +252,21 @@
     <h3 style="margin-bottom: 4px;">备选场景</h3>
     <p class="text-muted" style="font-size:0.75rem;">拖到上方时间轴可替换对应时段的场景 · 显示营业时间方便安排</p>
     <div class="available-pool" id="available-pool"></div>
+  </div>
+</div>
+
+<!-- 移动端：备选场景加入行程的时段替换弹层（触屏替代拖拽） -->
+<div class="replace-sheet" id="replace-sheet" onclick="if (event.target === this) closeReplaceSheet()">
+  <div class="replace-sheet__panel">
+    <div class="replace-sheet__title">把「<span id="replace-sheet-name"></span>」加入哪个时段？</div>
+    <div class="replace-sheet__slots">
+      <button class="replace-slot" onclick="confirmReplace(0)">① 早晨</button>
+      <button class="replace-slot" onclick="confirmReplace(1)">② 中午</button>
+      <button class="replace-slot" onclick="confirmReplace(2)">③ 下午</button>
+      <button class="replace-slot" onclick="confirmReplace(3)">④ 傍晚</button>
+      <button class="replace-slot" onclick="confirmReplace(4)">⑤ 夜晚</button>
+    </div>
+    <button class="btn btn-outline" onclick="closeReplaceSheet()" style="width:100%;">取消</button>
   </div>
 </div>
 
@@ -621,6 +668,10 @@
           <div style="font-size:0.65rem; color:var(--color-primary); margin:2px 0;">🕐 ${scene.business_hours || '全天'}</div>
           ${scene.fit_reason ? `<div style="font-size:0.65rem; color:var(--color-accent); margin-top:2px;">${scene.fit_reason}</div>` : ''}
           <div class="available-card__desc">${scene.poetic_desc.substring(0, 28)}...</div>
+          <button class="available-add"
+                  onclick="event.stopPropagation(); openReplaceSheet('${id}', '${String(scene.name).replace(/'/g, "\\'")}')">
+            ＋ 加入行程
+          </button>
         </div>
       `;
     }).join('');
@@ -787,6 +838,29 @@
     setCurrentTimeline(timeline);
     markEdited('reorder', { from_idx: idx, to_idx: idx - 1 });
     renderAll();
+  }
+
+  // ---------- 移动端：备选场景加入行程（触屏不支持 HTML5 拖拽，改用时段替换弹层） ----------
+  let pendingReplaceScene = null;
+  function openReplaceSheet(sceneId, sceneName) {
+    pendingReplaceScene = sceneId;
+    document.getElementById('replace-sheet-name').textContent = sceneName;
+    document.getElementById('replace-sheet').classList.add('show');
+  }
+  function confirmReplace(slotIdx) {
+    if (!pendingReplaceScene) return;
+    const timeline = getCurrentTimeline();
+    if (!timeline[slotIdx]) return;
+    const oldSceneId = timeline[slotIdx];
+    timeline[slotIdx] = pendingReplaceScene;
+    markEdited('replace', { to_idx: slotIdx, scene_in: pendingReplaceScene, scene_out: oldSceneId });
+    setCurrentTimeline(timeline);
+    pendingReplaceScene = null;
+    closeReplaceSheet();
+    renderAll();
+  }
+  function closeReplaceSheet() {
+    document.getElementById('replace-sheet').classList.remove('show');
   }
 
   // 已打卡翻转卡：点击切换正反面
