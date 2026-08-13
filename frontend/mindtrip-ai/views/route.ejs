@@ -149,15 +149,6 @@
     border-color: #FFFDF9; color: #FFF;
     box-shadow: 0 2px 10px rgba(212,118,62,0.55);
   }
-  .amap-marker-label {
-    font-size: 11px; font-weight: 600; color: #5C4B33;
-    background: #FFFDF9; padding: 3px 10px; border-radius: 999px;
-    border: 1px solid #C4A77D; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    white-space: nowrap;
-  }
-  .amap-marker-label--done {
-    color: #8B6914; background: #F8F1DC; border-color: #E0C879;
-  }
 </style>
 
 <div class="page-enter">
@@ -858,13 +849,9 @@
         </div>`;
       const marker = new AMap.Marker({
         position: node.coords,
-        title: node.name,
+        title: node.name,   // hover 显示名称（浏览器原生 tooltip）
         content: markerHtml,
-        offset: new AMap.Pixel(-14, -14),
-        label: {
-          content: `<div class="amap-marker-label${checked ? ' amap-marker-label--done' : ''}">${node.name}</div>`,
-          direction: 'top'
-        }
+        offset: new AMap.Pixel(-14, -14)
       });
       marker.on('click', () => { window.location.href = '/scene/' + node.id; });
       map.add(marker);
