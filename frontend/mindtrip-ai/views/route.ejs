@@ -83,22 +83,48 @@
   .tl-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .tl-actions .drag-handle { margin-left: auto; font-size: 0.66rem; color: #A0937E; }
 
-  /* ===== 打卡状态：已打卡场景的差异化显示 ===== */
+  /* ===== 打卡状态：已打卡 = 3D 翻转卡（正面照片+名称，翻转看详情） ===== */
   .badge-checked {
     display: inline-block; vertical-align: middle;
     background: #F5E9C8; color: #8B6914; border: 1px solid #E0C879;
     border-radius: 999px; padding: 2px 9px; font-size: 0.66rem; font-weight: 600;
   }
-  .timeline-item--checked { opacity: 0.88; }
-  .timeline-item--checked .timeline-name { color: #8A7D6A; }
-  .timeline-item--checked .timeline-thumb img { filter: saturate(0.55) brightness(1.05); }
-  .timeline-thumb { position: relative; }
-  .thumb-badge {
-    position: absolute; top: 6px; left: 6px; z-index: 2;
-    width: 22px; height: 22px; border-radius: 50%;
-    background: rgba(139,105,20,0.92); color: #fff; font-size: 0.74rem;
+  .flip-card { perspective: 1000px; cursor: pointer; }
+  .flip-inner {
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.3,.7,.3,1);
+  }
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 12px; overflow: hidden;
+    background: #FFFDF9; border: 1px solid #E4D8C2;
+  }
+  .flip-front { position: relative; }
+  .flip-front__img { width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; }
+  .flip-front__img--fallback {
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    font-size: 2rem; background: #EFE5D4; aspect-ratio: 16/9;
+  }
+  .flip-front__overlay {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 30px 14px 12px;
+    background: linear-gradient(180deg, transparent, rgba(30,23,15,0.8));
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
+  }
+  .flip-front__name {
+    color: #FFF7EB; font-family: var(--font-display);
+    font-size: 1.05rem; font-weight: 600;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.6);
+  }
+  .flip-hint {
+    position: absolute; top: 8px; right: 10px; z-index: 2;
+    font-size: 0.62rem; color: rgba(255,247,235,0.9);
+    background: rgba(30,23,15,0.45); border-radius: 999px; padding: 2px 8px;
+  }
+  .flip-back {
+    position: absolute; inset: 0; transform: rotateY(180deg);
+    padding: 14px 16px; overflow-y: auto;
   }
   .checkin-progress {
     display: inline-flex; align-items: center; gap: 6px;
@@ -427,8 +453,66 @@
           const crowdClass = scene.crowd_level === '低' ? 'crowd-low' :
                             scene.crowd_level === '中' ? 'crowd-medium' : 'crowd-high';
           const events = getMatchingEvents(scene, dateStr);
+          // 已打卡：3D 翻转卡（正面照片+名称+已打卡，点击翻转看详情）
+          if (scene.checked_in) {
+            return `
+              <div class="timeline-item timeline-item--draggable fade-in-up timeline-item--checked flip-card"
+                   draggable="true"
+                   data-index="${i}"
+                   data-scene-id="${scene.id}"
+                   ondragstart="onDragStart(event, ${i}, 'timeline')"
+                   ondragend="onDragEnd(event)"
+                   ondragover="onDragOver(event)"
+                   ondragleave="onDragLeave(event)"
+                   ondrop="onDrop(event, ${i}, 'timeline')"
+                   onclick="toggleFlip(this)"
+                   style="animation-delay: ${i * 0.08}s;">
+                <div class="timeline-dot">${i + 1}</div>
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    ${scene.image
+                      ? `<img class="flip-front__img" src="${scene.image}" alt="${scene.name}" loading="lazy" onerror="this.style.display='none'">`
+                      : '<div class="flip-front__img flip-front__img--fallback">📷</div>'}
+                    <span class="flip-hint">点击翻转 ↻</span>
+                    <div class="flip-front__overlay">
+                      <div class="flip-front__name">${scene.name}</div>
+                      <span class="badge-checked">✓ 已打卡</span>
+                    </div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    <div class="timeline-time" style="margin-bottom: 6px;">${TIME_SLOTS[i]}</div>
+                    <div class="timeline-name" style="font-size: 0.98rem; margin-bottom: 2px;">${scene.name}</div>
+                    <div class="timeline-desc" style="margin-top: 4px;">${scene.poetic_desc}</div>
+                    ${scene.why_fit ? `
+                      <div class="why-fit" data-why-fit="${scene.id}">${scene.why_fit}</div>
+                    ` : ''}
+                    <div class="tl-meta" style="margin-top: 8px;">
+                      <span>🕐 ${scene.business_hours || '全天'}</span>
+                      <span>·</span>
+                      <span class="${crowdClass}">人流 ${scene.crowd_level}</span>
+                      <span>·</span>
+                      <span>预算 ${PRICE_LABEL[scene.price_level] || scene.price_level}</span>
+                    </div>
+                    <div class="tl-actions" style="margin-top: 10px;">
+                      <a href="${scene.nav_url}" target="_blank" class="amap-nav-btn" onclick="event.stopPropagation()">
+                        <span class="amap-dot"></span>高德导航 →
+                      </a>
+                      <a href="/scene/${scene.id}" class="btn btn-outline btn-small" onclick="event.stopPropagation()">详情</a>
+                      <span class="drag-handle">⠿ 拖拽</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="mobile-controls">
+                  <button onclick="moveUp(${i})" ${i === 0 ? 'disabled' : ''} title="上移">↑</button>
+                  <button onclick="moveDown(${i})" ${i === timeline.length - 1 ? 'disabled' : ''} title="下移">↓</button>
+                </div>
+              </div>
+            `;
+          }
+
+          // 未打卡：完整信息卡
           return `
-            <div class="timeline-item timeline-item--draggable fade-in-up${scene.checked_in ? ' timeline-item--checked' : ''}"
+            <div class="timeline-item timeline-item--draggable fade-in-up"
                  draggable="true"
                  data-index="${i}"
                  data-scene-id="${scene.id}"
@@ -440,7 +524,6 @@
                  style="animation-delay: ${i * 0.08}s;">
               ${scene.image ? `
                 <div class="timeline-thumb">
-                  ${scene.checked_in ? '<span class="thumb-badge">✓</span>' : ''}
                   <img src="${scene.image}" alt="${scene.name}" loading="lazy"
                        onerror="this.parentNode.style.display='none'">
                 </div>
@@ -448,12 +531,11 @@
               <div class="timeline-dot">${i + 1}</div>
               <div class="timeline-time">${TIME_SLOTS[i]}</div>
 
-              <!-- 主信息：名称 + 打卡徽标 + 类型 -->
+              <!-- 主信息：名称 + 类型 -->
               <div class="tl-head">
                 <a href="/scene/${scene.id}" style="text-decoration:none; color:inherit;">
                   <div class="timeline-name">${scene.name}</div>
                 </a>
-                ${scene.checked_in ? '<span class="badge-checked">✓ 已打卡</span>' : ''}
                 <span class="tag tag--primary tl-type">${scene.type}</span>
                 ${scene.time_limited ? `<span class="tag tag--accent tl-limit">${scene.time_limited}</span>` : ''}
               </div>
@@ -691,6 +773,11 @@
     setCurrentTimeline(timeline);
     markEdited('reorder', { from_idx: idx, to_idx: idx - 1 });
     renderAll();
+  }
+
+  // 已打卡翻转卡：点击切换正反面
+  function toggleFlip(el) {
+    el.classList.toggle('flipped');
   }
 
   function moveDown(idx) {
