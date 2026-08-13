@@ -269,37 +269,43 @@
 
   // ---------- 数据加载 ----------
   async function init() {
-    // 默认明天出发
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    multiDayPlan.startDate = formatDate(tomorrow);
-    document.getElementById('travel-date').value = multiDayPlan.startDate;
-    document.getElementById('travel-date').min = formatDate(new Date());
+    try {
+      // 默认明天出发
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      multiDayPlan.startDate = formatDate(tomorrow);
+      document.getElementById('travel-date').value = multiDayPlan.startDate;
+      document.getElementById('travel-date').min = formatDate(new Date());
 
-    // 并行加载所有场景 + 两条动线（按城市）
-    const [scenesRes, mainRes, altRes] = await Promise.all([
-      fetch('/api/v1/scenes?city=' + CITY_ID),
-      fetch('/api/v1/route/main?city=' + CITY_ID),
-      fetch('/api/v1/route/alternative?city=' + CITY_ID)
-    ]);
-    const scenesData = await scenesRes.json();
-    routeDataCache.main = await mainRes.json();
-    routeDataCache.alternative = altRes.ok ? await altRes.json() : null;
+      // 并行加载所有场景 + 两条动线（按城市）
+      const [scenesRes, mainRes, altRes] = await Promise.all([
+        fetch('/api/v1/scenes?city=' + CITY_ID),
+        fetch('/api/v1/route/main?city=' + CITY_ID),
+        fetch('/api/v1/route/alternative?city=' + CITY_ID)
+      ]);
+      const scenesData = await scenesRes.json();
+      routeDataCache.main = await mainRes.json();
+      routeDataCache.alternative = altRes.ok ? await altRes.json() : null;
 
-    // 分层采集：显示行程约束适配说明
-    if (routeDataCache.main && routeDataCache.main.constraints && routeDataCache.main.constraints.note) {
-      const noteEl = document.getElementById('constraint-note');
-      noteEl.textContent = routeDataCache.main.constraints.note;
-      noteEl.style.display = '';
+      // 分层采集：显示行程约束适配说明
+      if (routeDataCache.main && routeDataCache.main.constraints && routeDataCache.main.constraints.note) {
+        const noteEl = document.getElementById('constraint-note');
+        noteEl.textContent = routeDataCache.main.constraints.note;
+        noteEl.style.display = '';
+      }
+
+      allScenes = {};
+      scenesData.scenes.forEach(s => { allScenes[s.id] = s; });
+
+      rebuildMultiDayPlan();
+      fetchWeather(); // 当日天气（降级友好，不阻塞动线渲染）
+      fetchWhyFit('main'); // "为什么适合你"文案：后台生成，渐进更新（不阻塞首屏）
+    } catch (e) {
+      console.error('动线页初始化失败:', e);
+    } finally {
+      // 无论初始化是否出错，加载遮罩必须隐藏，保证内容可见
+      hideRouteLoading();
     }
-
-    allScenes = {};
-    scenesData.scenes.forEach(s => { allScenes[s.id] = s; });
-
-    rebuildMultiDayPlan();
-    fetchWeather(); // 当日天气（降级友好，不阻塞动线渲染）
-    hideRouteLoading();
-    fetchWhyFit('main'); // "为什么适合你"文案：后台生成，渐进更新（不阻塞首屏）
   }
 
   // ---------- 加载过渡层：数据就绪即淡出 ----------
@@ -713,7 +719,13 @@
         const container = document.getElementById('map-container');
         container.innerHTML = '<div id="amap" style="width:100%; height:100%;"></div>';
       }
-      renderAMap(timeline);
+      try {
+        renderAMap(timeline);
+      } catch (e) {
+        // 高德初始化异常（如 key/安全密钥问题）：降级 SVG，不影响页面其他内容
+        console.error('地图渲染失败，降级示意地图:', e);
+        renderSVGMap(timeline);
+      }
     } else {
       renderSVGMap(timeline);
     }
