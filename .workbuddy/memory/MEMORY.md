@@ -4,6 +4,7 @@
 - **远程仓库必须常更新**（echo 明确要求）：每次会话完成实质工作后，commit + push 到 GitHub（`origin: EchoZheng2333/mindtrip-ai`，分支 main）。
 - 网络注意：CN 网络对 GitHub 大对象 push 易 408/SSL 中断；已配置 `http.postBuffer=524288000`、`http.version=HTTP/1.1`、lowSpeed 参数。长 push 用后台方式运行。
 - 远程可能有 echo 在网页端的提交（如 Update README.md），push 前先 `git fetch` + `git pull --rebase`，必要时 `--force-with-lease`。
+- **代理坑（2026-08-13）**：git 全局 `http.proxy=127.0.0.1:7890` 常处于未运行状态导致 push 报 "Failed to connect to 127.0.0.1 port 7890"。解决：`git -c http.proxy=http://127.0.0.1:54510 push origin main`（环境变量代理 54510 可用）；或 `git -c http.proxy= push`（直连，慢但通）。不要改全局代理配置（用户环境）。
 
 ## 密钥安全
 - **`.env.example` 只放占位符**（`sk-xxx...` / `xxx...`），真实 key 只存 `.env`（已被 .gitignore 排除）。
