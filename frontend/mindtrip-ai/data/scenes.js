@@ -230,6 +230,7 @@ const scenes = {
   changjiang_riverside: {
     id: 'changjiang_riverside',
     city: 'jingdezhen',
+    image: '/img/scenes/changjiang_riverside.jpg',
     name: '昌江边观落日',
     type: '景点',
     time_slot: '傍晚',
@@ -253,6 +254,7 @@ const scenes = {
   taoxichuan_night_market: {
     id: 'taoxichuan_night_market',
     city: 'jingdezhen',
+    image: '/img/scenes/taoxichuan_night_market.jpg',
     name: '陶溪川夜市',
     type: '夜间',
     time_slot: '夜晚',
