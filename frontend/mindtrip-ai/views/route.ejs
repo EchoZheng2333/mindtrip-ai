@@ -61,6 +61,30 @@
     font-family: var(--font-display); font-size: 0.95rem; line-height: 2;
     color: #F5EDDE; text-shadow: 0 2px 16px rgba(0,0,0,0.7); letter-spacing: 0.05em;
   }
+
+  /* ===== 时间标签移到左侧：经典时间轴布局（内容区右移 120px） ===== */
+  .timeline { padding-left: 120px; }
+  .timeline::before { left: 99px; }   /* 竖线对齐圆点中心（120 - 32 + 12 - 1） */
+  .timeline-dot { left: -32px; }
+  .timeline-time {
+    position: absolute;
+    left: -120px;        /* 定位到左侧时间列 */
+    top: 6px;
+    width: 84px;
+    text-align: right;
+    margin-bottom: 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+  @media (max-width: 480px) {
+    .timeline { padding-left: 32px; }
+    .timeline-time {
+      position: static;
+      text-align: left;
+      margin-bottom: 4px;
+      width: auto;
+    }
+  }
 </style>
 
 <div class="page-enter">
