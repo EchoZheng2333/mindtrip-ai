@@ -62,23 +62,11 @@
     color: #F5EDDE; text-shadow: 0 2px 16px rgba(0,0,0,0.7); letter-spacing: 0.05em;
   }
 
-  /* ===== 时间标签移到左侧：经典时间轴布局（内容区右移 120px） ===== */
-  .timeline { padding-left: 120px; }
-  .timeline::before { left: 99px; }   /* 竖线对齐圆点中心（120 - 32 + 12 - 1） */
+  /* ===== 时间轴：竖线/圆点对齐预算卡左边缘（时间标签在卡片顶部，不占左列） ===== */
+  .timeline { padding-left: 32px; }
+  .timeline::before { left: 11px; }
   .timeline-dot { left: -32px; }
-  .timeline-time {
-    position: absolute;
-    left: -118px;        /* 定位到左侧时间列 */
-    top: 50%;
-    transform: translateY(-50%);  /* 垂直居中于卡片，消除"悬空缺块" */
-    width: 92px;
-    text-align: right;
-    margin-bottom: 0;
-    font-size: 0.84rem;
-    font-weight: 500;
-    color: var(--color-accent);
-    line-height: 1.4;
-  }
+  .timeline-time { position: static; margin-bottom: 4px; }
 
   /* ===== 行程卡片信息层级：主信息 → 实用信息 → 深度文案 ===== */
   .tl-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -94,19 +82,6 @@
   .tl-meta .crowd-high { color: #A32D2D; }
   .tl-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .tl-actions .drag-handle { margin-left: auto; font-size: 0.66rem; color: #A0937E; }
-
-  @media (max-width: 480px) {
-    .timeline { padding-left: 32px; }
-    .timeline-time {
-      position: static;
-      transform: none;
-      top: auto;
-      left: auto;
-      text-align: left;
-      margin-bottom: 4px;
-      width: auto;
-    }
-  }
 </style>
 
 <div class="page-enter">
