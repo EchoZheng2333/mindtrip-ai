@@ -148,7 +148,7 @@
 </div>
 
 <% if (amapKey) { %>
-<script src="https://webapi.amap.com/maps?v=2.0&key=<%= amapKey %>&plugin=AMap.Marker,AMap.Polyline"></script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=<%= amapKey %><%= amapJscode ? '&jscode=' + amapJscode : '' %>&plugin=AMap.Marker,AMap.Polyline"></script>
 <% } %>
 
 <script>

@@ -75,6 +75,7 @@ router.get('/route', (req, res) => {
     title: '心旅推荐',
     personality: req.session.personality,
     amapKey: process.env.AMAP_KEY || '',
+    amapJscode: process.env.AMAP_JSCODE || '',
     city: cities[cityId]
   });
 });
