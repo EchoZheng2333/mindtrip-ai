@@ -83,9 +83,10 @@ router.get('/profile', (req, res) => {
 
 // ============================================================
 // GET /api/v1/route/:type — 获取动线推荐（main | alternative）
-// v1.2: 接入 LLM 动态生成 why_fit 文案
+// why-fit 为独立异步接口（见下方），此处让位
 // ============================================================
-router.get('/route/:type', async (req, res) => {
+router.get('/route/:type', async (req, res, next) => {
+  if (req.params.type === 'why-fit') return next(); // 让位给专门的 why-fit 路由
   const routeType = req.params.type;
   const route = routes[routeType];
 
@@ -117,19 +118,6 @@ router.get('/route/:type', async (req, res) => {
     };
   }).filter(Boolean);
 
-  // v1.2: 尝试用 LLM 动态生成"为什么适合你"文案
-  if (req.session.personality) {
-    const profile = req.session.personality.profile;
-    const llmWhyFit = await generateWhyFitBatch(profile, timeline);
-    if (llmWhyFit) {
-      timeline.forEach(node => {
-        if (llmWhyFit[node.id]) {
-          node.why_fit = llmWhyFit[node.id];
-        }
-      });
-    }
-  }
-
   // 分层采集：按行程约束做动线适配说明
   const constraints = req.session.constraints || null;
   const constraintNote = constraints ? buildConstraintNote(constraints) : '';
@@ -140,6 +128,38 @@ router.get('/route/:type', async (req, res) => {
     timeline,
     constraints: constraints ? { ...constraints, note: constraintNote } : null
   });
+});
+
+// ============================================================
+// GET /api/v1/route/why-fit — 异步生成"为什么适合你"文案
+// 不阻塞动线首屏：进入动线页先渲染本地数据，文案后台生成后渐进更新
+// 带 session 级缓存：同人格 + 同动线只调一次 LLM
+// ============================================================
+router.get('/route/why-fit', async (req, res) => {
+  if (!req.session.personality) return res.json({ ok: false });
+
+  const routeType = req.query.type || 'main';
+  const route = routes[routeType];
+  if (!route) return res.json({ ok: false });
+
+  const cityId = req.query.city;
+  if (cityId && route.city !== cityId) return res.json({ ok: false });
+
+  const profile = req.session.personality.profile;
+  const cacheKey = profile.name + '|' + routeType + '|' + route.city;
+
+  // session 级缓存命中：直接返回
+  if (req.session.why_fit_cache && req.session.why_fit_cache[cacheKey]) {
+    return res.json({ ok: true, why_fit: req.session.why_fit_cache[cacheKey] });
+  }
+
+  const timeline = route.timeline.map(node => scenes[node.scene_id]).filter(Boolean);
+  const llmWhyFit = await generateWhyFitBatch(profile, timeline);
+  if (!llmWhyFit) return res.json({ ok: false });
+
+  if (!req.session.why_fit_cache) req.session.why_fit_cache = {};
+  req.session.why_fit_cache[cacheKey] = llmWhyFit;
+  res.json({ ok: true, why_fit: llmWhyFit });
 });
 
 // ============================================================

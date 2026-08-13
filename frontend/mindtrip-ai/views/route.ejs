@@ -30,9 +30,47 @@
   /* 动线卡片场景缩略图 */
   .timeline-thumb { border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
   .timeline-thumb img { width: 100%; display: block; height: 84px; object-fit: cover; }
+
+  /* 动线卡片"为什么适合你"（LLM 异步渐进更新） */
+  .why-fit {
+    margin-top: 8px; padding: 8px 12px;
+    background: linear-gradient(135deg, #FFF3EB, #FFE8D6);
+    border-left: 3px solid var(--color-accent); border-radius: 8px;
+    font-size: 0.76rem; line-height: 1.75; color: #5C4B33;
+  }
+  .why-fit--pending { opacity: 0.55; font-style: italic; }
+
+  /* 动线页加载过渡层（复用等待页样式，数据就绪即淡出） */
+  .route-loading {
+    position: fixed; inset: 0; z-index: 80; background: #241D15;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    transition: opacity 0.5s ease;
+  }
+  .route-loading[hidden] { display: none; }
+  .route-loading__img {
+    position: absolute; inset: 0;
+    background: url('/png/游玩过程中的加载页面.png') center/cover no-repeat;
+    opacity: 0.5;
+  }
+  .route-loading__veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(30,24,16,0.45), rgba(30,24,16,0.62));
+  }
+  .route-loading__text {
+    position: relative; z-index: 2; text-align: center; padding: 0 34px;
+    font-family: var(--font-display); font-size: 0.95rem; line-height: 2;
+    color: #F5EDDE; text-shadow: 0 2px 16px rgba(0,0,0,0.7); letter-spacing: 0.05em;
+  }
 </style>
 
 <div class="page-enter">
+  <!-- 加载过渡层：数据就绪后淡出（LLM 文案为异步渐进，不阻塞首屏） -->
+  <div class="route-loading" id="route-loading">
+    <div class="route-loading__img"></div>
+    <div class="route-loading__veil"></div>
+    <div class="route-loading__text">正在为你编排心旅动线…</div>
+  </div>
+
   <h1 style="text-align:center;">心旅推荐 · <%= city.name %></h1>
   <p class="text-muted text-center mb-md">为你定制的文旅动线 · <a href="/explore" style="color:var(--color-primary);">切换城市 ⇄</a></p>
 
@@ -184,6 +222,47 @@
 
     rebuildMultiDayPlan();
     fetchWeather(); // 当日天气（降级友好，不阻塞动线渲染）
+    hideRouteLoading();
+    fetchWhyFit('main'); // "为什么适合你"文案：后台生成，渐进更新（不阻塞首屏）
+  }
+
+  // ---------- 加载过渡层：数据就绪即淡出 ----------
+  function hideRouteLoading() {
+    const mask = document.getElementById('route-loading');
+    if (!mask) return;
+    mask.style.opacity = 0;
+    setTimeout(() => { mask.hidden = true; }, 550);
+  }
+
+  // ---------- "为什么适合你"文案：异步渐进加载 ----------
+  // 后端带 session 缓存（同人格+同动线只调一次 LLM）；失败/超时静默，静态 why_fit 兜底
+  async function fetchWhyFit(type) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);
+      const res = await fetch('/api/v1/route/why-fit?type=' + type + '&city=' + CITY_ID, { signal: ctrl.signal });
+      clearTimeout(timer);
+      const data = await res.json();
+      if (!data.ok || !data.why_fit) return;
+
+      // 渐进更新当前日动线卡片（按 data-scene-id 定位，不整页重渲染）
+      document.querySelectorAll('.timeline-item').forEach(item => {
+        const sid = item.getAttribute('data-scene-id');
+        if (data.why_fit[sid]) {
+          let box = item.querySelector('[data-why-fit="' + sid + '"]');
+          if (!box) {
+            box = document.createElement('div');
+            box.className = 'why-fit';
+            box.setAttribute('data-why-fit', sid);
+            item.insertBefore(box, item.querySelector('.timeline-desc')?.nextSibling || null);
+          }
+          box.textContent = data.why_fit[sid];
+          box.classList.remove('why-fit--pending');
+        }
+      });
+    } catch (e) {
+      // 静默降级（保留静态 why_fit）
+    }
   }
 
   function rebuildMultiDayPlan() {
@@ -292,6 +371,7 @@
             <div class="timeline-item timeline-item--draggable fade-in-up"
                  draggable="true"
                  data-index="${i}"
+                 data-scene-id="${scene.id}"
                  ondragstart="onDragStart(event, ${i}, 'timeline')"
                  ondragend="onDragEnd(event)"
                  ondragover="onDragOver(event)"
@@ -311,6 +391,9 @@
                 <div class="timeline-name">${scene.emoji || ''} ${scene.name}</div>
               </a>
               <div class="timeline-desc">${scene.poetic_desc}</div>
+              ${scene.why_fit ? `
+                <div class="why-fit" data-why-fit="${scene.id}">${scene.why_fit}</div>
+              ` : ''}
               <div style="margin-top: 6px; font-size: 0.72rem; color: var(--color-primary); display:flex; align-items:center; gap:4px;">
                 🕐 营业: ${scene.business_hours || '全天'}
               </div>
